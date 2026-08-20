@@ -1,0 +1,5 @@
+# Personal / internal data — never publish
+*.pdf
+jain-kalyanam-db-knowledge.md
+schema_diagram.html
+.claude/

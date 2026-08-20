@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jain Kalyanam — Profile Search &amp; Registration</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Profile Registry</small></div>
+    </div>
+
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
+      <span class="tab-pill" id="tabIndicator"></span>
+      <button class="tab active" data-view="search" type="button" role="tab" aria-selected="true">Search profiles</button>
+      <button class="tab" data-view="create" type="button" role="tab" aria-selected="false">Create profile</button>
+      <button class="tab" data-view="admin" type="button" role="tab" aria-selected="false">Admin</button>
+    </nav>
+
+    <div class="header-right">
+      <div class="omni">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" placeholder="Search name, ID, city…" />
+        <span class="kbd">⌘K</span>
+      </div>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+        <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+      </button>
+      <div class="avatar"><span>PS</span></div>
+    </div>
+  </header>
+
+  <div class="view-wrap">
+
+    <!-- ================= SEARCH VIEW ================= -->
+    <section class="view active" id="view-search">
+      <div class="search-grid">
+
+        <aside class="filters glass-card">
+          <div class="filters-head">
+            <h2>Filters</h2>
+            <div class="filters-head-actions">
+              <button type="button">Save</button>
+              <button type="button">Reset</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Age range</label>
+            <div class="range-row">
+              <input type="number" value="30" aria-label="Minimum age" />
+              <span class="to">to</span>
+              <input type="number" value="38" aria-label="Maximum age" />
+              <span class="to">yrs</span>
+            </div>
+            <div class="slider-track">
+              <div class="fill"></div>
+              <div class="knob left"></div>
+              <div class="knob right"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Sect</label>
+            <div class="chip-group">
+              <span class="chk on" tabindex="0"><span class="dot"></span>Shwetamber</span>
+              <span class="chk" tabindex="0"><span class="dot"></span>Digambar</span>
+              <span class="chk on" tabindex="0"><span class="dot"></span>Sthanakwasi</span>
+              <span class="chk on" tabindex="0"><span class="dot"></span>Mandirmargi</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>City</label>
+            <select class="city-select">
+              <option>Pune</option>
+              <option>Mumbai</option>
+              <option>Ahmedabad</option>
+              <option>Any city</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Minimum annual income</label>
+            <select class="city-select">
+              <option>₹15–20 L and above</option>
+              <option>₹30 L and above</option>
+              <option>₹50 L and above</option>
+              <option>No minimum</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Minimum education</label>
+            <select class="city-select">
+              <option>Any</option>
+              <option>Graduate</option>
+              <option>Postgraduate</option>
+              <option>CA / CS / Doctor / Engineer</option>
+              <option>Postgraduate abroad</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Marital status</label>
+            <select class="city-select">
+              <option>Never married</option>
+              <option>Any</option>
+              <option>Divorced</option>
+              <option>Widowed</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Manglik</label>
+            <select class="city-select">
+              <option>Any</option>
+              <option>No</option>
+              <option>Yes</option>
+              <option>Anshik</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Exclude sakha (gotra)</label>
+            <div class="exclude-list">
+              <div class="exclude-item"><span>Bedmutha</span><button aria-label="Remove Bedmutha">×</button></div>
+              <div class="exclude-item"><span>Alizad</span><button aria-label="Remove Alizad">×</button></div>
+              <div class="exclude-item"><span>Kumat</span><button aria-label="Remove Kumat">×</button></div>
+              <div class="exclude-item"><span>Chhajed</span><button aria-label="Remove Chhajed">×</button></div>
+            </div>
+            <div class="add-exclude">
+              <input type="text" placeholder="Add sakha to exclude…" />
+              <button type="button">Add</button>
+            </div>
+          </div>
+
+          <div class="apply-bar">
+            <button class="btn-primary" type="button">Apply filters</button>
+            <div class="apply-hint">5 filters active · 5 matches</div>
+          </div>
+        </aside>
+
+        <main class="main">
+          <div class="results-head">
+            <div>
+              <h1 class="display">Matches for her preferences</h1>
+              <div class="sub"><strong>5</strong> profiles · sect, city, income and sakha filters applied · sorted by best match</div>
+            </div>
+            <div class="sort-row">
+              Sort by
+              <select>
+                <option>Best match</option>
+                <option>Age, ascending</option>
+                <option>Income, descending</option>
+                <option>Recently added</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card-grid">
+
+            <article class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--accent)">YJ</div>
+                <div class="p-id"><span class="name">Yash Jain</span><span class="id">M15111</span></div>
+                <svg class="ring" width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--track)" stroke-width="4"/>
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="96.5 100.5" transform="rotate(-90 20 20)"/>
+                  <text x="20" y="23">96%</text>
+                </svg>
+              </div>
+              <div class="p-stats"><span>30 yrs</span><span>6'0"</span><span>Akurdi, Pune</span></div>
+              <div class="p-line"><strong>MBA Finance</strong> — Duke Fuqua (USA)</div>
+              <div class="p-line">Service · &gt; 1 Cr / yr</div>
+              <div class="p-tags"><span class="sect-tag">Sthanakwasi</span><span class="pill pending">Pending</span></div>
+              <button class="p-action" data-id="M15111">View biodata <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </article>
+
+            <article class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--info)">PM</div>
+                <div class="p-id"><span class="name">Pritam Meher</span><span class="id">J11674</span></div>
+                <svg class="ring" width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--track)" stroke-width="4"/>
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.6 100.5" transform="rotate(-90 20 20)"/>
+                  <text x="20" y="23">94%</text>
+                </svg>
+              </div>
+              <div class="p-stats"><span>30 yrs</span><span>5'9"</span><span>Chinchwad, Pune</span></div>
+              <div class="p-line"><strong>M.S. Computer Science</strong> — USA</div>
+              <div class="p-line">Service · &gt; 1 Cr / yr</div>
+              <div class="p-tags"><span class="sect-tag">Sthanakwasi</span><span class="pill shortlisted">Shortlisted</span></div>
+              <button class="p-action" data-id="J11674">View biodata <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </article>
+
+            <article class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--warning)">UC</div>
+                <div class="p-id"><span class="name">Urvish Chokshi</span><span class="id">M17078</span></div>
+                <svg class="ring" width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--track)" stroke-width="4"/>
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="88.4 100.5" transform="rotate(-90 20 20)"/>
+                  <text x="20" y="23">88%</text>
+                </svg>
+              </div>
+              <div class="p-stats"><span>30 yrs</span><span>5'11"</span><span>Pune</span></div>
+              <div class="p-line"><strong>CA, LLB, ADIT</strong></div>
+              <div class="p-line">Service · 30–40 L / yr</div>
+              <div class="p-tags"><span class="sect-tag">Mandirmargi</span><span class="pill pending">Pending</span></div>
+              <button class="p-action" data-id="M17078">View biodata <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </article>
+
+            <article class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--success)">MS</div>
+                <div class="p-id"><span class="name">Mihir Shah</span><span class="id">J19086</span></div>
+                <svg class="ring" width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--track)" stroke-width="4"/>
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="85.4 100.5" transform="rotate(-90 20 20)"/>
+                  <text x="20" y="23">85%</text>
+                </svg>
+              </div>
+              <div class="p-stats"><span>31 yrs</span><span>6'0"</span><span>Pune</span></div>
+              <div class="p-line"><strong>CA &amp; Registered Valuer</strong></div>
+              <div class="p-line">Private job · 30–40 L / yr</div>
+              <div class="p-tags"><span class="sect-tag">Mandirmargi</span><span class="pill contacted">Contacted</span></div>
+              <button class="p-action" data-id="J19086">View biodata <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </article>
+
+            <article class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--ink-soft)">BK</div>
+                <div class="p-id"><span class="name">Bhagyesh Kocheta</span><span class="id">J13761</span></div>
+                <svg class="ring" width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--track)" stroke-width="4"/>
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="79.4 100.5" transform="rotate(-90 20 20)"/>
+                  <text x="20" y="23">79%</text>
+                </svg>
+              </div>
+              <div class="p-stats"><span>32 yrs</span><span>5'10"</span><span>Pune</span></div>
+              <div class="p-line"><strong>Chartered Accountant</strong></div>
+              <div class="p-line">Professional · 20–30 L / yr</div>
+              <div class="p-tags"><span class="sect-tag">Sthanakwasi</span><span class="pill pending">Pending</span></div>
+              <button class="p-action" data-id="J13761">View biodata <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </article>
+
+          </div>
+
+          <div class="results-foot">
+            <span>Showing 1–5 of 5</span>
+            <div class="pages"><button class="on">1</button></div>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- ================= CREATE PROFILE VIEW ================= -->
+    <section class="view" id="view-create">
+      <div class="wizard">
+        <div class="wizard-head">
+          <h1 class="display" id="wizardTitle">Create a new profile</h1>
+          <p id="wizardSubtitle">Add a candidate to the registry. Progress is saved automatically at every step.</p>
+        </div>
+
+        <div class="stepper">
+          <div class="track"><div class="fill" id="stepFill"></div></div>
+          <div class="step-labels" id="stepLabels">
+            <span class="current" data-step="1">Basic</span>
+            <span data-step="2">Family</span>
+            <span data-step="3">Education</span>
+            <span data-step="4">Contact</span>
+            <span data-step="5">Review</span>
+          </div>
+        </div>
+
+        <form class="wizard-card glass-card" id="wizardForm">
+
+          <section class="step-pane active" data-pane="1">
+            <h3 class="pane-title">Basic details</h3>
+            <div class="field-grid">
+              <div class="form-field span-2">
+                <label>Full name<span class="req">*</span></label>
+                <input class="form-input" id="wFullName" type="text" placeholder="e.g. Aarohi Prashant Surana" />
+              </div>
+              <div class="form-field">
+                <label>Gender<span class="req">*</span></label>
+                <select class="form-input" id="wGender"><option>Female</option><option>Male</option></select>
+              </div>
+              <div class="form-field">
+                <label>Date of birth<span class="req">*</span></label>
+                <input class="form-input" id="wDob" type="date" />
+              </div>
+              <div class="form-field">
+                <label>Height</label>
+                <input class="form-input" id="wHeight" type="text" placeholder="e.g. 5'4&quot;" />
+              </div>
+              <div class="form-field">
+                <label>Marital status</label>
+                <select class="form-input" id="wMarital"><option>Never married</option><option>Divorced</option><option>Widowed</option></select>
+              </div>
+              <div class="form-field">
+                <label>Mother tongue</label>
+                <select class="form-input" id="wTongue"><option>Marathi</option><option>Gujarati</option><option>Hindi</option><option>Other</option></select>
+              </div>
+              <div class="form-field">
+                <label>Manglik</label>
+                <select class="form-input" id="wManglik"><option>No</option><option>Yes</option><option>Anshik</option><option>Don't know</option></select>
+              </div>
+            </div>
+          </section>
+
+          <section class="step-pane" data-pane="2">
+            <h3 class="pane-title">Family &amp; community</h3>
+            <div class="field-grid">
+              <div class="form-field">
+                <label>Sect<span class="req">*</span></label>
+                <select class="form-input" id="wSect"><option>Shwetamber</option><option>Digambar</option></select>
+              </div>
+              <div class="form-field">
+                <label>Sub-sect</label>
+                <select class="form-input" id="wSubsect"><option>Sthanakwasi</option><option>Mandirmargi</option><option>Terapanthi</option></select>
+              </div>
+              <div class="form-field">
+                <label>Sakha / gotra</label>
+                <input class="form-input" id="wGotra" type="text" placeholder="e.g. Mutha" />
+              </div>
+              <div class="form-field">
+                <label>Native place</label>
+                <input class="form-input" id="wNative" type="text" placeholder="e.g. Jalgaon" />
+              </div>
+              <div class="form-field">
+                <label>Father's name</label>
+                <input class="form-input" id="wFatherName" type="text" />
+              </div>
+              <div class="form-field">
+                <label>Father's occupation</label>
+                <input class="form-input" id="wFatherOcc" type="text" />
+              </div>
+              <div class="form-field">
+                <label>Mother's name</label>
+                <input class="form-input" id="wMotherName" type="text" />
+              </div>
+              <div class="form-field">
+                <label>Mother's occupation</label>
+                <input class="form-input" id="wMotherOcc" type="text" />
+              </div>
+              <div class="form-field">
+                <label>Siblings</label>
+                <input class="form-input" id="wSiblings" type="text" placeholder="e.g. 1 elder brother, married" />
+              </div>
+              <div class="form-field">
+                <label>Family type</label>
+                <select class="form-input" id="wFamilyType"><option>Nuclear</option><option>Joint</option></select>
+              </div>
+            </div>
+          </section>
+
+          <section class="step-pane" data-pane="3">
+            <h3 class="pane-title">Education &amp; career</h3>
+            <div class="field-grid">
+              <div class="form-field span-2">
+                <label>Highest education<span class="req">*</span></label>
+                <input class="form-input" id="wEducation" type="text" placeholder="e.g. MBA Finance, Duke Fuqua (USA)" />
+              </div>
+              <div class="form-field">
+                <label>Occupation</label>
+                <input class="form-input" id="wOccupation" type="text" placeholder="e.g. Service, Business, Professional" />
+              </div>
+              <div class="form-field">
+                <label>Company / organisation</label>
+                <input class="form-input" id="wCompany" type="text" />
+              </div>
+              <div class="form-field">
+                <label>Annual income</label>
+                <select class="form-input" id="wIncome">
+                  <option>Below ₹10 L</option>
+                  <option>₹10–20 L</option>
+                  <option>₹20–30 L</option>
+                  <option>₹30–50 L</option>
+                  <option>Above ₹1 Cr</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Work location</label>
+                <input class="form-input" id="wWorkLocation" type="text" placeholder="e.g. Pune" />
+              </div>
+            </div>
+          </section>
+
+          <section class="step-pane" data-pane="4">
+            <h3 class="pane-title">Contact &amp; preferences</h3>
+            <div class="field-grid">
+              <div class="form-field">
+                <label>Phone<span class="req">*</span></label>
+                <input class="form-input" id="wPhone" type="tel" placeholder="+91 " />
+              </div>
+              <div class="form-field">
+                <label>Email</label>
+                <input class="form-input" id="wEmail" type="email" />
+              </div>
+              <div class="form-field span-2">
+                <label>Current city</label>
+                <input class="form-input" id="wCity" type="text" placeholder="e.g. Pune" />
+              </div>
+              <div class="form-field span-2">
+                <label>Permanent address</label>
+                <textarea class="form-input" id="wAddress" placeholder="House / street / city / pin"></textarea>
+              </div>
+              <div class="form-field span-2">
+                <label>Photograph</label>
+                <div class="dropzone">
+                  <strong>Drag &amp; drop a photo, or click to upload</strong>
+                  <span>JPG or PNG, up to 5 MB</span>
+                </div>
+              </div>
+              <div class="form-field span-2">
+                <label>Partner preference notes</label>
+                <textarea class="form-input" id="wNote" placeholder="Age range, city, income expectations, sakha exclusions…"></textarea>
+                <span class="hint">This free-text note is what the search filters are built from.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="step-pane" data-pane="5">
+            <h3 class="pane-title">Review &amp; internal note</h3>
+            <div class="modal-dl" id="reviewGrid"></div>
+            <div class="form-field span-2">
+              <label>Internal admin note</label>
+              <textarea class="form-input" id="adminNote" placeholder="Staff-only note — verification status, family contact outcome, follow-up needed…"></textarea>
+              <span class="hint">Visible only to registry admins, never shown on the candidate's biodata.</span>
+            </div>
+          </section>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-ghost" id="btnBack" disabled>Back</button>
+            <div class="wizard-actions-right">
+              <span class="autosave">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                Draft saved automatically
+              </span>
+              <button type="button" class="btn-primary" id="btnNext">Continue</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= ADMIN VIEW ================= -->
+    <section class="view" id="view-admin">
+      <div class="admin-grid">
+
+        <div class="admin-col notes-col glass-card">
+          <div class="admin-col-head">
+            <h2>Notes</h2>
+            <span class="sub">Internal, staff-only</span>
+          </div>
+          <div class="notes-list" id="notesList">
+            <div class="note-item">
+              <div class="note-meta"><span class="note-author">Prashant S.</span><span class="note-time">Aug 18, 2026 · 6:42 PM</span></div>
+              <p>Called Yash Jain's family — confirmed interest, sharing horoscope by Friday.</p>
+              <span class="note-tag">M15111</span>
+            </div>
+            <div class="note-item">
+              <div class="note-meta"><span class="note-author">Prashant S.</span><span class="note-time">Aug 17, 2026 · 11:05 AM</span></div>
+              <p>Pritam's family asked about her willingness to relocate abroad post marriage — flagged for follow-up call.</p>
+              <span class="note-tag">J11674</span>
+            </div>
+            <div class="note-item">
+              <div class="note-meta"><span class="note-author">Prashant S.</span><span class="note-time">Aug 15, 2026 · 9:20 PM</span></div>
+              <p>Widened the age band to 30–38 after the first pass came back thin — worth revisiting once more Pune profiles are added.</p>
+            </div>
+          </div>
+          <div class="note-add">
+            <textarea class="form-input" id="newNoteText" placeholder="Add a note — mention a profile ID like M15111 to link it…"></textarea>
+            <button class="btn-primary" type="button" id="addNoteBtn">Add note</button>
+          </div>
+        </div>
+
+        <div class="admin-col prefs-col glass-card">
+          <div class="admin-col-head">
+            <h2>Preferences</h2>
+            <span class="sub">Defaults for this registry</span>
+          </div>
+          <div class="prefs-list">
+            <div class="pref-row">
+              <div class="pref-text"><strong>New match alerts</strong><span>Notify when a profile matches the saved search criteria</span></div>
+              <button class="switch on" role="switch" aria-checked="true" type="button"><span class="knob"></span></button>
+            </div>
+            <div class="pref-row">
+              <div class="pref-text"><strong>Weekly digest</strong><span>Summary email every Monday morning</span></div>
+              <button class="switch" role="switch" aria-checked="false" type="button"><span class="knob"></span></button>
+            </div>
+            <div class="pref-row">
+              <div class="pref-text"><strong>Auto-shortlist high matches</strong><span>Move profiles above the threshold to Shortlisted automatically</span></div>
+              <button class="switch on" role="switch" aria-checked="true" type="button"><span class="knob"></span></button>
+            </div>
+            <div class="field">
+              <label>Match threshold</label>
+              <div class="range-row"><input type="number" value="85" /><span class="to">% and above</span></div>
+            </div>
+            <div class="field">
+              <label>Default city</label>
+              <select class="city-select"><option>Pune</option><option>Mumbai</option><option>Ahmedabad</option><option>Any city</option></select>
+            </div>
+            <div class="field">
+              <label>Default sect</label>
+              <select class="city-select"><option>Shwetamber</option><option>Digambar</option><option>Any</option></select>
+            </div>
+          </div>
+          <div class="apply-bar">
+            <button class="btn-primary" type="button">Save preferences</button>
+            <div class="apply-hint">Applied to new searches only</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalName">
+      <button class="modal-close" id="modalClose" type="button" aria-label="Close biodata">×</button>
+      <div class="modal-head">
+        <div class="modal-avatar" id="modalAvatar"></div>
+        <div>
+          <h2 id="modalName" class="display"></h2>
+          <div class="modal-id" id="modalIdTag"></div>
+        </div>
+        <div class="modal-ring-wrap">
+          <svg class="modal-ring" width="56" height="56" viewBox="0 0 68 68">
+            <circle cx="34" cy="34" r="30" fill="none" stroke="var(--track)" stroke-width="5"/>
+            <circle id="modalRingProgress" cx="34" cy="34" r="30" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" transform="rotate(-90 34 34)"/>
+            <text id="modalMatchText" x="34" y="38"></text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="modal-dl">
+        <div class="kv"><span class="k">Age</span><span class="v" id="mAge"></span></div>
+        <div class="kv"><span class="k">Height</span><span class="v" id="mHeight"></span></div>
+        <div class="kv"><span class="k">Marital status</span><span class="v" id="mMarital"></span></div>
+        <div class="kv"><span class="k">Mother tongue</span><span class="v" id="mTongue"></span></div>
+        <div class="kv"><span class="k">Sect</span><span class="v" id="mSect"></span></div>
+        <div class="kv"><span class="k">Native place</span><span class="v" id="mNative"></span></div>
+        <div class="kv"><span class="k">Education</span><span class="v" id="mEducation"></span></div>
+        <div class="kv"><span class="k">Occupation</span><span class="v" id="mOccupation"></span></div>
+        <div class="kv"><span class="k">Annual income</span><span class="v" id="mIncome"></span></div>
+        <div class="kv"><span class="k">Current city</span><span class="v" id="mCity"></span></div>
+        <div class="kv"><span class="k">Father's occupation</span><span class="v" id="mFather"></span></div>
+        <div class="kv"><span class="k">Siblings</span><span class="v" id="mSiblings"></span></div>
+      </div>
+
+      <div class="modal-note-box">
+        <span class="k">Partner preference note</span>
+        <p id="modalNote"></p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" type="button" id="modalEdit">Edit profile</button>
+        <div class="modal-actions-right">
+          <button class="btn-ghost" type="button" id="modalContact">Contact family</button>
+          <button class="btn-primary" type="button" id="modalShortlist">Shortlist</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
