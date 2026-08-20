@@ -511,8 +511,20 @@ textarea.form-input { resize: vertical; min-height: 72px; }
   color: var(--ink-faint); margin-top: 0px;
 }
 .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0.7rem 0.55rem; display: flex; flex-direction: column; gap: 1.05rem; }
-.nav-group-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 700; padding: 0 0.55rem; margin-bottom: 0.3rem; white-space: nowrap; }
+.nav-group-label {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 700;
+  padding: 0.2rem 0.55rem; margin-bottom: 0.15rem; white-space: nowrap;
+  background: none; border: none; cursor: pointer; font-family: inherit; text-align: left;
+  transition: color 0.15s ease;
+}
+.nav-group-label:hover { color: var(--ink-soft); }
+.nav-group-label svg { flex: none; opacity: 0.75; transition: transform 0.15s ease; }
 .nav-group { display: flex; flex-direction: column; gap: 0.1rem; }
+.nav-group-items { display: flex; flex-direction: column; gap: 0.1rem; overflow: hidden; }
+.nav-group.collapsed .nav-group-label svg { transform: rotate(-90deg); }
+.nav-group.collapsed .nav-group-items { display: none; }
+.sidebar.collapsed .nav-group.collapsed .nav-group-items { display: flex; }
 .nav-item {
   display: flex; align-items: center; gap: 0.6rem;
   padding: 0.44rem 0.55rem; border-radius: 7px;
