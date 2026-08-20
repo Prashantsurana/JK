@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  .section-label {
+    margin: 0 0 0.75rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--ink-faint); font-weight: 700;
+  }
+  .donut-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; }
+  @media (max-width: 980px) { .donut-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 720px) { .donut-grid { grid-template-columns: 1fr; } }
+  .donut-card { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.85rem; }
+  .donut-card h3 { margin: 0; font-size: 0.8rem; font-weight: 700; letter-spacing: -0.005em; }
+  .donut-body { display: flex; align-items: center; gap: 1rem; }
+  .donut-ring { position: relative; width: 92px; height: 92px; border-radius: 50%; flex: none; }
+  .donut-ring .hole {
+    position: absolute; inset: 13px; border-radius: 50%; background: var(--surface-solid);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  }
+  .donut-ring .hole strong { font-size: 0.92rem; font-weight: 700; color: var(--ink); line-height: 1.1; }
+  .donut-ring .hole span { font-size: 0.56rem; color: var(--ink-faint); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem; }
+  .donut-legend { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 0; }
+  .donut-legend .legend-row { justify-content: space-between; font-size: 0.71rem; }
+  .donut-legend .legend-row .name { display: flex; align-items: center; min-width: 0; }
+  .donut-legend .legend-row .val { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; flex: none; margin-left: 0.5rem; }
+
+  .workspace-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 0.85rem; }
+  @media (max-width: 900px) { .workspace-grid { grid-template-columns: 1fr; } }
+  .quick-panel { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.85rem; }
+  .quick-panel h3 { margin: 0; font-size: 0.8rem; font-weight: 700; letter-spacing: -0.005em; }
+  .quick-panel .eyebrow { margin: 0; font-size: 0.63rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--accent); font-weight: 700; }
+  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  @media (max-width: 480px) { .quick-grid { grid-template-columns: 1fr; } }
+  .quick-btn {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface-solid); color: var(--ink);
+    padding: 0.65rem 0.75rem; font-size: 0.74rem; font-weight: 650; font-family: inherit; cursor: pointer;
+    text-align: left; transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .quick-btn:hover { border-color: var(--accent); background: var(--accent-wash); color: var(--accent); }
+
+  .panels-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
+  @media (max-width: 900px) { .panels-grid { grid-template-columns: 1fr; } }
+  .list-panel { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .list-panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .list-panel-head h3 { margin: 0; font-size: 0.8rem; font-weight: 700; letter-spacing: -0.005em; }
+  .list-panel-body { display: flex; flex-direction: column; gap: 0.5rem; }
+  .list-panel-foot { padding-top: 0.55rem; border-top: 1px solid var(--border); }
+  .list-panel-foot button {
+    border: none; background: none; color: var(--accent); font-size: 0.72rem; font-weight: 700;
+    cursor: pointer; font-family: inherit; padding: 0;
+  }
+  .list-panel-foot button:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item active" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">Dashboard<small>Core</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+
+      <div class="page-head">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="sub">Profile mix, workspace shortcuts, and what's assigned to you across the console.</p>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-ghost" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-tile">
+          <div class="label">Total Profiles</div>
+          <div class="value">1,284</div>
+          <div class="delta">Male 612 &middot; Female 672</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Assigned Profiles</div>
+          <div class="value">5</div>
+          <div class="delta">Top 5 shown below</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Assigned Tasks</div>
+          <div class="value">5</div>
+          <div class="delta">2 pending &middot; 2 in progress</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Total Users</div>
+          <div class="value">24</div>
+          <div class="delta">4 role groups</div>
+        </div>
+      </div>
+
+      <div>
+        <p class="section-label">Profile Overview</p>
+        <div class="donut-grid">
+          <div class="glass-card donut-card">
+            <h3>Total Profiles</h3>
+            <div class="donut-body">
+              <div class="donut-ring" style="background: conic-gradient(var(--info) 0% 47.7%, var(--accent) 47.7% 100%);">
+                <div class="hole"><strong>1,284</strong><span>Total</span></div>
+              </div>
+              <div class="donut-legend">
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--info);"></span>Male</span><span class="val">612</span></div>
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--accent);"></span>Female</span><span class="val">672</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="glass-card donut-card">
+            <h3>Male Marital Status</h3>
+            <div class="donut-body">
+              <div class="donut-ring" style="background: conic-gradient(var(--success) 0% 68.6%, var(--warning) 68.6% 86.6%, var(--info) 86.6% 95.1%, var(--accent) 95.1% 100%);">
+                <div class="hole"><strong>612</strong><span>Male</span></div>
+              </div>
+              <div class="donut-legend">
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--success);"></span>Never Married</span><span class="val">420</span></div>
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--warning);"></span>Divorced</span><span class="val">110</span></div>
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--info);"></span>Widower</span><span class="val">52</span></div>
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--accent);"></span>Awaiting Divorce</span><span class="val">30</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="glass-card donut-card">
+            <h3>Female Marital Status</h3>
+            <div class="donut-body">
+              <div class="donut-ring" style="background: conic-gradient(var(--success) 0% 71.4%, var(--warning) 71.4% 90.7%, var(--info) 90.7% 97.4%, var(--accent) 97.4% 100%);">
+                <div class="hole"><strong>672</strong><span>Female</span></div>
+              </div>
+              <div class="donut-legend">
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--success);"></span>Never Married</span><span class="val">480</span></div>
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--warning);"></span>Divorced</span><span class="val">130</span></div>
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--info);"></span>Widow</span><span class="val">45</span></div>
+                <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--accent);"></span>Awaiting Divorce</span><span class="val">17</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workspace-grid">
+        <div class="glass-card donut-card">
+          <h3>Role Wise Distribution</h3>
+          <div class="donut-body">
+            <div class="donut-ring" style="background: conic-gradient(var(--accent) 0% 41.7%, var(--info) 41.7% 66.7%, var(--success) 66.7% 83.3%, var(--warning) 83.3% 100%);">
+              <div class="hole"><strong>24</strong><span>Users</span></div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--accent);"></span>Relationship Manager</span><span class="val">10</span></div>
+              <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--info);"></span>Verifier</span><span class="val">6</span></div>
+              <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--success);"></span>Admin</span><span class="val">4</span></div>
+              <div class="legend-row"><span class="name"><span class="legend-dot" style="background: var(--warning);"></span>Viewer</span><span class="val">4</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card quick-panel">
+          <p class="eyebrow">Quick Options</p>
+          <h3>Workspace Shortcuts</h3>
+          <div class="quick-grid">
+            <button class="quick-btn" type="button">Duplicate Merge History</button>
+            <button class="quick-btn" type="button">CSV Import</button>
+            <button class="quick-btn" type="button">Bulk Export</button>
+            <button class="quick-btn" type="button">Future Prospects</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="section-label">Assigned To Me</p>
+        <div class="panels-grid">
+          <div class="glass-card list-panel">
+            <div class="list-panel-head">
+              <h3>Profiles</h3>
+              <span class="sect-tag">5</span>
+            </div>
+            <div class="list-panel-body">
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">#1042 &middot; Aarav Shah</span></div>
+                <p>Male &middot; Never Married &middot; Pune, Maharashtra</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">#1077 &middot; Ishita Mehta</span></div>
+                <p>Female &middot; Divorced &middot; Ahmedabad, Gujarat</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">#1103 &middot; Kunal Bafna</span></div>
+                <p>Male &middot; Never Married &middot; Indore, Madhya Pradesh</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">#1128 &middot; Priya Sancheti</span></div>
+                <p>Female &middot; Never Married &middot; Jaipur, Rajasthan</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">#1140 &middot; Yash Kothari</span></div>
+                <p>Male &middot; Widower &middot; Surat, Gujarat</p>
+              </div>
+            </div>
+            <div class="list-panel-foot"><button type="button">View more</button></div>
+          </div>
+
+          <div class="glass-card list-panel">
+            <div class="list-panel-head">
+              <h3>Tasks</h3>
+              <span class="sect-tag">5</span>
+            </div>
+            <div class="list-panel-body">
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Follow up on Priya Sancheti's family details</span></div>
+                <p>In Progress &middot; Due 22 Aug 2026 &middot; Priya Sancheti</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Verify documents for Kunal Bafna</span></div>
+                <p>Pending &middot; Due 20 Aug 2026 &middot; Kunal Bafna</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Schedule call with Ishita Mehta's family</span></div>
+                <p>Completed &middot; Due 18 Aug 2026 &middot; Ishita Mehta</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Confirm horoscope match request</span></div>
+                <p>Pending &middot; No due date &middot; Yash Kothari</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Update contact preference</span></div>
+                <p>In Progress &middot; Due 25 Aug 2026 &middot; Aarav Shah</p>
+              </div>
+            </div>
+            <div class="list-panel-foot"><button type="button">View more</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="section-label">Reports Overview</p>
+        <div class="panels-grid">
+          <div class="glass-card list-panel">
+            <div class="list-panel-head">
+              <h3>Audit Logs</h3>
+              <span class="pill shortlisted">Top 5</span>
+            </div>
+            <div class="list-panel-body">
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Profile Updated</span></div>
+                <p>Prashant S. &middot; 19 Aug 2026, 04:10 PM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Profile Created</span></div>
+                <p>Neha Jain &middot; 19 Aug 2026, 02:47 PM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Task Assigned</span></div>
+                <p>Admin &middot; 19 Aug 2026, 11:30 AM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Bulk Export</span></div>
+                <p>Prashant S. &middot; 18 Aug 2026, 06:05 PM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">Recommendation Matched</span></div>
+                <p>System &middot; 18 Aug 2026, 09:15 AM</p>
+              </div>
+            </div>
+            <div class="list-panel-foot"><button type="button">View more</button></div>
+          </div>
+
+          <div class="glass-card list-panel">
+            <div class="list-panel-head">
+              <h3>Recommendations</h3>
+              <span class="pill shortlisted">Top 5</span>
+            </div>
+            <div class="list-panel-body">
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">neha.jain@jainkalyanam.com</span></div>
+                <p>48 total &middot; 32 matched &middot; 12 active &middot; 19 Aug 2026, 03:20 PM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">rahul.verifier@jainkalyanam.com</span></div>
+                <p>36 total &middot; 24 matched &middot; 9 active &middot; 19 Aug 2026, 01:05 PM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">admin@jainkalyanam.com</span></div>
+                <p>22 total &middot; 18 matched &middot; 5 active &middot; 18 Aug 2026, 05:40 PM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">priya.rm@jainkalyanam.com</span></div>
+                <p>15 total &middot; 10 matched &middot; 3 active &middot; 18 Aug 2026, 10:12 AM</p>
+              </div>
+              <div class="note-item">
+                <div class="note-meta"><span class="note-author">kunal.rm@jainkalyanam.com</span></div>
+                <p>9 total &middot; 6 matched &middot; 2 active &middot; 17 Aug 2026, 04:55 PM</p>
+              </div>
+            </div>
+            <div class="list-panel-foot"><button type="button">View more</button></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

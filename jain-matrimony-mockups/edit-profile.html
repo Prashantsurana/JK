@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Profile · Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* ---- page-specific additions, following the existing token / radius / size scale ---- */
+  .ep-hero {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    background: var(--surface-solid); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.15rem;
+  }
+  .ep-hero-left { display: flex; align-items: center; gap: 0.85rem; min-width: 0; }
+  .ep-avatar-lg {
+    width: 52px; height: 52px; border-radius: 11px; flex: none;
+    background: var(--accent); color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem;
+  }
+  .ep-name { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.005em; margin: 0 0 0.3rem; }
+  .ep-progress-row { display: flex; align-items: center; gap: 0.6rem; }
+  .ep-progress-track { width: 190px; height: 5px; border-radius: 3px; background: var(--track); overflow: hidden; }
+  .ep-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+  .ep-progress-text { font-size: 0.68rem; color: var(--ink-faint); font-weight: 600; white-space: nowrap; }
+  .ep-hero-right { display: flex; align-items: center; gap: 0.7rem; flex: none; }
+  .ep-badge { font-size: 0.72rem; font-weight: 700; color: var(--ink); background: var(--track); border-radius: 7px; padding: 0.4rem 0.7rem; font-variant-numeric: tabular-nums; }
+  .ep-phonetic { display: flex; flex-direction: column; gap: 0.15rem; text-align: right; }
+  .ep-phonetic span { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 700; }
+  .ep-phonetic b { font-size: 0.82rem; font-family: ui-monospace, monospace; }
+
+  .ep-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; border-bottom: 1px solid var(--border); padding-bottom: 0.85rem; }
+  .ep-tab {
+    border: 1px solid var(--border); background: var(--surface-solid); color: var(--ink-soft);
+    border-radius: 999px; padding: 0.4rem 0.8rem; font-size: 0.74rem; font-weight: 650; cursor: pointer;
+    font-family: inherit; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .ep-tab:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .ep-tab.active { background: var(--accent-wash); border-color: var(--accent); color: var(--accent); }
+
+  .ep-panel { display: none; }
+  .ep-panel.active { display: flex; flex-direction: column; gap: 1rem; animation: viewIn 0.28s cubic-bezier(.2,.8,.2,1); }
+
+  .ep-section-card { background: var(--surface-solid); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.2rem; }
+  .ep-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.9rem; gap: 0.6rem; flex-wrap: wrap; }
+  .ep-section-head h3 { font-size: 0.86rem; font-weight: 700; margin: 0; letter-spacing: -0.005em; }
+  .ep-section-head .hint { font-size: 0.7rem; color: var(--ink-faint); }
+  .ep-section-foot { display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+  .ep-add-btn { border: 1px dashed var(--border); background: none; color: var(--ink-soft); border-radius: 7px; padding: 0.35rem 0.7rem; font-size: 0.72rem; font-weight: 650; cursor: pointer; font-family: inherit; }
+  .ep-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .ep-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.85rem; }
+  .ep-mini-card { background: var(--track); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 0.9rem; display: flex; flex-direction: column; gap: 0.55rem; position: relative; }
+  .ep-mini-card .kicker { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 700; }
+  .ep-mini-card .title { font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+  .ep-mini-card .sub { font-size: 0.74rem; color: var(--ink-soft); line-height: 1.5; }
+  .ep-mini-card .row-flags { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.1rem; }
+  .ep-remove { position: absolute; top: 0.55rem; right: 0.55rem; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface-solid); color: var(--ink-faint); font-size: 0.7rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .ep-remove:hover { border-color: var(--exclude); color: var(--exclude); }
+
+  .ep-duplicate-banner { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: 0.9rem 1rem; border-radius: 8px; background: var(--track); }
+  .ep-duplicate-banner b { font-size: 0.84rem; }
+  .ep-duplicate-banner p { margin: 0.3rem 0 0; font-size: 0.75rem; color: var(--ink-soft); line-height: 1.5; max-width: 560px; }
+  .ep-warn-box { background: var(--warning-wash); color: var(--warning); border-radius: 8px; padding: 0.7rem 0.9rem; font-size: 0.78rem; display: flex; flex-direction: column; gap: 0.15rem; }
+  .ep-warn-box b { color: var(--warning); }
+  .ep-safe-box { background: var(--success-wash); color: var(--success); border-radius: 8px; padding: 0.7rem 0.9rem; font-size: 0.8rem; font-weight: 650; }
+  .ep-dup-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: var(--surface-solid); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; }
+  .ep-dup-name { font-weight: 700; font-size: 0.86rem; margin-bottom: 0.15rem; }
+  .ep-dup-meta { font-size: 0.72rem; color: var(--ink-faint); margin-bottom: 0.5rem; }
+  .ep-reason-chip { font-size: 0.65rem; font-weight: 650; background: var(--exclude-wash); color: var(--exclude); border-radius: 5px; padding: 0.16rem 0.45rem; margin-right: 0.3rem; display: inline-block; }
+  .ep-dup-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; flex: none; }
+  .ep-score-box { text-align: center; }
+  .ep-score-box span { display: block; font-size: 1rem; font-weight: 700; color: var(--exclude); }
+  .ep-score-box small { font-size: 0.62rem; color: var(--ink-faint); }
+  .ep-override-box { display: flex; align-items: center; gap: 0.5rem; font-size: 0.76rem; color: var(--ink-soft); }
+
+  .ep-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.7rem; }
+  .ep-photo-tile { position: relative; border-radius: 9px; overflow: hidden; aspect-ratio: 3/4; background: var(--track); border: 1px solid var(--border); }
+  .ep-photo-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ep-photo-primary { position: absolute; top: 0.4rem; left: 0.4rem; background: var(--accent); color: var(--accent-ink); font-size: 0.6rem; font-weight: 700; border-radius: 5px; padding: 0.12rem 0.4rem; }
+  .ep-photo-del { position: absolute; bottom: 0.4rem; right: 0.4rem; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(20,22,30,0.55); color: #fff; font-size: 0.7rem; cursor: pointer; }
+
+  .ep-doc-card { background: var(--track); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.9rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .ep-doc-card .type { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--info); font-weight: 700; }
+  .ep-doc-card .name { font-size: 0.8rem; font-weight: 650; color: var(--ink); }
+  .ep-doc-card .meta { font-size: 0.68rem; color: var(--ink-faint); }
+  .ep-doc-actions { display: flex; gap: 0.8rem; margin-top: 0.2rem; }
+  .ep-doc-actions a, .ep-doc-actions button { font-size: 0.72rem; font-weight: 650; background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; }
+  .ep-doc-actions a { color: var(--info); text-decoration: none; }
+  .ep-doc-actions button { color: var(--exclude); }
+
+  .ep-tag-chip { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.73rem; font-weight: 650; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: 0.3rem 0.65rem; }
+  .ep-tag-chip button { border: none; background: none; color: inherit; opacity: 0.7; cursor: pointer; font-size: 0.75rem; line-height: 1; }
+
+  @media (max-width: 900px) {
+    .ep-hero { flex-direction: column; align-items: flex-start; }
+    .ep-hero-right { width: 100%; justify-content: space-between; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item active" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">Edit Profile<small>Core</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+
+      <div class="page-head">
+        <div>
+          <h1>Edit Profile</h1>
+          <div class="sub">Update an existing profile section by section — identity, family, preferences, payments, and media.</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-ghost" type="button">&lt; Back to Search</button>
+          <button class="btn-primary" type="button">Save Changes</button>
+        </div>
+      </div>
+
+      <div class="ep-hero">
+        <div class="ep-hero-left">
+          <div class="ep-avatar-lg">ND</div>
+          <div>
+            <p class="ep-name">Naman Sunil Doshi</p>
+            <div class="ep-progress-row">
+              <div class="ep-progress-track"><div class="ep-progress-fill" style="width:100%"></div></div>
+              <div class="ep-progress-text">Basics section</div>
+            </div>
+          </div>
+        </div>
+        <div class="ep-hero-right">
+          <div class="ep-badge">Profile #JK-10482-M</div>
+          <div class="ep-phonetic"><span>Phonetic Key</span><b>NMN-SNL-DSH</b></div>
+        </div>
+      </div>
+
+      <div class="ep-tabs" id="epTabs">
+        <button class="ep-tab" data-section="duplicate" type="button">Duplicate Check</button>
+        <button class="ep-tab active" data-section="identity" type="button">Basics</button>
+        <button class="ep-tab" data-section="personal" type="button">Personal</button>
+        <button class="ep-tab" data-section="contacts" type="button">Contacts</button>
+        <button class="ep-tab" data-section="addresses" type="button">Addresses</button>
+        <button class="ep-tab" data-section="education" type="button">Education &amp; Career</button>
+        <button class="ep-tab" data-section="family" type="button">Family</button>
+        <button class="ep-tab" data-section="relatives" type="button">Relatives</button>
+        <button class="ep-tab" data-section="preferences" type="button">Preferences</button>
+        <button class="ep-tab" data-section="persona" type="button">Persona</button>
+        <button class="ep-tab" data-section="payments" type="button">Payments</button>
+        <button class="ep-tab" data-section="tags" type="button">Tags</button>
+        <button class="ep-tab" data-section="photos" type="button">Photos</button>
+        <button class="ep-tab" data-section="documents" type="button">Documents</button>
+      </div>
+
+      <!-- Duplicate Check -->
+      <div class="ep-panel" data-panel="duplicate">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Duplicate Safety Check</h3>
+            <span class="hint">Runs before you save identity changes</span>
+          </div>
+          <div class="ep-duplicate-banner">
+            <div>
+              <b>Identity fields changed</b>
+              <p>Duplicate check uses first, middle, last name, gender, and date of birth. Birth time is optional and only improves matching when provided.</p>
+            </div>
+            <button class="btn-primary" type="button">Run Duplicate Check</button>
+          </div>
+
+          <div class="ep-warn-box">
+            <b>Possible duplicate profiles found.</b>
+            <span>Review matches before saving this edit.</span>
+          </div>
+
+          <div class="ep-dup-card">
+            <div>
+              <div class="ep-dup-name">Naman S. Doshi</div>
+              <div class="ep-dup-meta">Profile #JK-09271-M · Male · 14 Feb 1996 · Pune, Maharashtra</div>
+              <div>
+                <span class="ep-reason-chip">Same DOB</span>
+                <span class="ep-reason-chip">Similar name</span>
+                <span class="ep-reason-chip">Same gender</span>
+              </div>
+            </div>
+            <div class="ep-dup-actions">
+              <button class="btn-ghost" type="button">View Profile</button>
+              <div class="ep-score-box"><span>92%</span><small>match</small></div>
+            </div>
+          </div>
+
+          <label class="ep-override-box">
+            <input type="checkbox" class="chk" style="width:16px;height:16px;padding:0;">
+            <span>I reviewed these matches and still want to save this profile.</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Basics -->
+      <div class="ep-panel active" data-panel="identity">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Profile Basics</h3>
+            <span class="hint">Name, birth and core identity</span>
+          </div>
+          <div class="field-grid">
+            <div class="form-field"><label>First Name<span class="req">*</span></label><input class="form-input" value="Naman"></div>
+            <div class="form-field"><label>Middle Name<span class="req">*</span></label><input class="form-input" value="Sunil"></div>
+            <div class="form-field"><label>Last Name<span class="req">*</span></label><input class="form-input" value="Doshi"></div>
+            <div class="form-field"><label>Gender<span class="req">*</span></label>
+              <select class="form-input"><option>Male</option><option>Female</option></select>
+            </div>
+            <div class="form-field"><label>Date of Birth<span class="req">*</span></label><input class="form-input" type="date" value="1996-02-14"></div>
+            <div class="form-field"><label>Birth Time (Optional)</label><input class="form-input" type="time" value="06:40"></div>
+            <div class="form-field span-2"><label>Birth Place Location</label><input class="form-input" value="Pune, Maharashtra, India"></div>
+            <div class="form-field span-2"><label>Caste &amp; Sakha</label><input class="form-input" value="Digambar Jain · Sakha: Khandelwal"></div>
+            <div class="form-field"><label>Sampraday</label>
+              <select class="form-input"><option>Digambar</option><option>Shwetambar</option><option>Taranpanthi</option></select>
+            </div>
+            <div class="form-field"><label>Sampraday Details</label><input class="form-input" placeholder="Additional sampraday details, branch, or notes" value="Terapanthi branch"></div>
+            <div class="form-field"><label>Referral Source</label>
+              <select class="form-input"><option>Family Reference</option><option>Existing Member</option><option>Website</option></select>
+            </div>
+            <div class="form-field"><label>Referral Name</label><input class="form-input" value="Rakesh Mehta"></div>
+            <div class="form-field span-2"><label>About Me</label><textarea class="form-input" rows="3">Working as a bank officer in Pune, enjoys trekking and classical music. Looking for a well-settled, family-oriented match.</textarea></div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Personal -->
+      <div class="ep-panel" data-panel="personal">
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Personal Details</h3><span class="hint">Marital, physical and profile personal details</span></div>
+          <div class="field-grid">
+            <div class="form-field"><label>Marital Status</label><select class="form-input"><option>Unmarried</option><option>Divorced</option><option>Widowed</option></select></div>
+            <div class="form-field"><label>Has Children</label><select class="form-input"><option>No</option><option>Yes</option></select></div>
+            <div class="form-field"><label>Height</label><input class="form-input" value="5 ft 8 in"></div>
+            <div class="form-field span-2"><label>Marital Field Details</label><input class="form-input" placeholder="Mention children, previous marriage details, custody, or other relevant notes"></div>
+            <div class="form-field"><label>Complexion</label><select class="form-input"><option>Fair</option><option>Wheatish</option><option>Dark</option></select></div>
+            <div class="form-field"><label>Blood Group</label><select class="form-input"><option>B+</option><option>O+</option><option>A+</option><option>AB+</option></select></div>
+            <div class="form-field"><label>Manglik</label><select class="form-input"><option>No</option><option>Yes</option><option>Anshik</option></select></div>
+            <div class="form-field"><label>Disability</label><select class="form-input"><option>None</option><option>Yes</option></select></div>
+            <div class="form-field span-2"><label>Disability Description</label><input class="form-input" placeholder="Describe disability if any"></div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Contacts -->
+      <div class="ep-panel" data-panel="contacts">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Contact Numbers &amp; Email</h3>
+            <button class="ep-add-btn" type="button">+ Add Contact</button>
+          </div>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Mobile</span>
+              <span class="title">+91 98220 41176</span>
+              <span class="sub">Contact Person: Naman Doshi · Relation: Self</span>
+              <div class="row-flags"><span class="pill contacted">Primary</span><span class="pill contacted">Verified</span></div>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Email</span>
+              <span class="title">naman.doshi96@gmail.com</span>
+              <span class="sub">Contact Person: Naman Doshi · Relation: Self</span>
+              <div class="row-flags"><span class="pill pending">Not Primary</span><span class="pill contacted">Verified</span></div>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Parent Mobile</span>
+              <span class="title">+91 98221 55302</span>
+              <span class="sub">Contact Person: Sunil Doshi · Relation: Father</span>
+              <div class="row-flags"><span class="pill pending">Not Primary</span><span class="pill pending">Unverified</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Addresses -->
+      <div class="ep-panel" data-panel="addresses">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Addresses</h3>
+            <button class="ep-add-btn" type="button">+ Add Address</button>
+          </div>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Current</span>
+              <span class="title">Flat 302, Shanti Nagar Society</span>
+              <span class="sub">Kothrud, Pune, Maharashtra, India — 411038</span>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Native</span>
+              <span class="title">12, Jain Mohalla</span>
+              <span class="sub">Sojat, Rajasthan, India — 306104</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Education & Career -->
+      <div class="ep-panel" data-panel="education">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Education</h3>
+            <button class="ep-add-btn" type="button">+ Add Education</button>
+          </div>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Postgraduate · Highest Degree</span>
+              <span class="title">MBA (Finance) — Chartered Accountant</span>
+              <span class="sub">Pune University · Passed 2022</span>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Graduate</span>
+              <span class="title">B.Com</span>
+              <span class="sub">Fergusson College, Pune · Passed 2019</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Occupations</h3>
+            <button class="ep-add-btn" type="button">+ Add Occupation</button>
+          </div>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Bank Officer · Sanghvi Textiles</span>
+              <span class="title">Customer service and branch operations</span>
+              <span class="sub">Annual Income: ₹12,00,000</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Other Info</h3></div>
+          <div class="field-grid">
+            <div class="form-field"><label>Annual Income</label><input class="form-input" value="10 lac to 15 lac"></div>
+            <div class="form-field"><label>Family Status</label><input class="form-input" value="Upper Middle Class"></div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Family -->
+      <div class="ep-panel" data-panel="family">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Family</h3>
+            <button class="ep-add-btn" type="button">+ Add Family Member</button>
+          </div>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Father</span>
+              <span class="title">Sunil Kumar Doshi</span>
+              <span class="sub">Married · Business Owner — Doshi Textile Traders</span>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Mother</span>
+              <span class="title">Sangeeta Sunil Doshi</span>
+              <span class="sub">Married · Homemaker</span>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Sister</span>
+              <span class="title">Priya Doshi</span>
+              <span class="sub">Unmarried · Future Prospect: Yes · Eligible Year 2027</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Relatives -->
+      <div class="ep-panel" data-panel="relatives">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Relatives</h3>
+            <button class="ep-add-btn" type="button">+ Add Relative</button>
+          </div>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Paternal · Uncle</span>
+              <span class="title">Ashok Kumar Doshi</span>
+              <span class="sub">Married · Wife: Kavita Doshi · Jaipur</span>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Maternal · Cousin</span>
+              <span class="title">Deepika Jain</span>
+              <span class="sub">Unmarried · Future Prospect: No · Nagpur</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="ep-panel" data-panel="preferences">
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Partner Preferences</h3><span class="hint">Matching and exclusion criteria</span></div>
+          <div class="field-grid">
+            <div class="form-field span-2"><label>Preferred Age Difference</label><input class="form-input" value="-2 to +4 years"></div>
+            <div class="form-field"><label>Preferred Cities</label><input class="form-input" value="Pune, Mumbai, Ahmedabad"></div>
+            <div class="form-field"><label>Non Preferred Cities</label><input class="form-input" value="—"></div>
+            <div class="form-field"><label>Preferred Castes</label><input class="form-input" value="Khandelwal, Oswal"></div>
+            <div class="form-field"><label>Non Preferred Sakhas</label><input class="form-input" value="—"></div>
+            <div class="form-field"><label>Preferred Education Categories</label><input class="form-input" value="Postgraduate, Professional"></div>
+            <div class="form-field"><label>Non Preferred Education Categories</label><input class="form-input" value="—"></div>
+            <div class="form-field"><label>Preferred Degrees</label><input class="form-input" value="MBA, CA, CS"></div>
+            <div class="form-field"><label>Non Preferred Degrees</label><input class="form-input" value="—"></div>
+            <div class="form-field"><label>Preferred Occupation Types</label><input class="form-input" value="Salaried, Business"></div>
+            <div class="form-field"><label>Non Preferred Occupation Types</label><input class="form-input" value="—"></div>
+            <div class="form-field span-2"><label>Preference Notes</label><textarea class="form-input" rows="2">Family prefers a bride settled in Maharashtra or Gujarat; open to relocation after marriage.</textarea></div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Persona -->
+      <div class="ep-panel" data-panel="persona">
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Persona / Package</h3></div>
+          <div class="field-grid">
+            <div class="form-field"><label>Tier</label><select class="form-input"><option>Gold</option><option>Silver</option><option>Platinum</option></select></div>
+            <div class="form-field"><label>Profile Category</label><select class="form-input"><option>Premium</option><option>Standard</option></select></div>
+            <div class="form-field"><label>Payment Amount</label><input class="form-input" type="number" value="15000"></div>
+            <div class="form-field"><label>Valid From</label><input class="form-input" type="date" value="2026-01-10"></div>
+            <div class="form-field"><label>Valid Until</label><input class="form-input" type="date" value="2027-01-09"></div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Payments -->
+      <div class="ep-panel" data-panel="payments">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Payments</h3>
+            <button class="ep-add-btn" type="button">+ Add Payment</button>
+          </div>
+          <div class="field-grid">
+            <div class="form-field"><label>Amount</label><input class="form-input" type="number" value="15000"></div>
+            <div class="form-field"><label>Payment Status</label><select class="form-input"><option>Paid</option><option>Pending</option><option>Failed</option><option>Refunded</option></select></div>
+            <div class="form-field"><label>Payment Method</label><input class="form-input" placeholder="UPI / Cash / Bank Transfer" value="UPI"></div>
+            <div class="form-field"><label>Transaction Reference</label><input class="form-input" value="UPI2601102233"></div>
+            <div class="form-field"><label>Paid At</label><input class="form-input" type="date" value="2026-01-10"></div>
+          </div>
+        </div>
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Payment History</h3></div>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <span class="title">₹15,000 — Paid</span>
+              <span class="sub">UPI · UPI2601102233 · 10 Jan 2026</span>
+            </div>
+            <div class="ep-mini-card">
+              <span class="title">₹5,000 — Refunded</span>
+              <span class="sub">Bank Transfer · NEFT88213 · 02 Sep 2025</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="ep-panel" data-panel="tags">
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Tags</h3><span class="hint">Search or create tags</span></div>
+          <input class="form-input" placeholder="Search or create tags" style="margin-bottom:0.85rem;">
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+            <span class="ep-tag-chip">Priority Profile <button type="button">×</button></span>
+            <span class="ep-tag-chip">NRI Interest <button type="button">×</button></span>
+            <span class="ep-tag-chip">Documents Verified <button type="button">×</button></span>
+            <span class="ep-tag-chip">Follow-up Needed <button type="button">×</button></span>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div class="ep-panel" data-panel="photos">
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Photos (4/10)</h3></div>
+          <div class="ep-photo-grid">
+            <div class="ep-photo-tile"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop" alt="Photo 1"><span class="ep-photo-primary">Primary</span><button class="ep-photo-del" type="button">×</button></div>
+            <div class="ep-photo-tile"><img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=300&h=400&fit=crop" alt="Photo 2"><button class="ep-photo-del" type="button">×</button></div>
+            <div class="ep-photo-tile"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=400&fit=crop" alt="Photo 3"><button class="ep-photo-del" type="button">×</button></div>
+            <div class="ep-photo-tile"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&h=400&fit=crop" alt="Photo 4"><button class="ep-photo-del" type="button">×</button></div>
+            <div class="dropzone" style="aspect-ratio:3/4;">
+              <strong>+ Add Photos</strong>
+              <span>JPEG, PNG, WEBP, max 5MB after compression, 4/10</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+      <!-- Documents -->
+      <div class="ep-panel" data-panel="documents">
+        <div class="ep-section-card">
+          <div class="ep-section-head">
+            <h3>Media Links</h3>
+            <button class="ep-add-btn" type="button">+ Add Link</button>
+          </div>
+          <span class="hint" style="display:block; margin-bottom:0.75rem;">Add Instagram, Facebook, Twitter, biodata, or other links for this profile.</span>
+          <div class="ep-card-grid">
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Instagram</span>
+              <span class="title" style="word-break:break-all;">instagram.com/naman.doshi96</span>
+            </div>
+            <div class="ep-mini-card">
+              <button class="ep-remove" type="button">×</button>
+              <span class="kicker">Biodata PDF</span>
+              <span class="title" style="word-break:break-all;">drive.google.com/naman-biodata.pdf</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-card">
+          <div class="ep-section-head"><h3>Documents &amp; Generated Media</h3></div>
+          <div class="ep-card-grid" style="margin-bottom:0.9rem;">
+            <div class="ep-doc-card">
+              <span class="type">Biodata PDF</span>
+              <span class="name">Naman_Doshi_Biodata.pdf</span>
+              <span class="meta">application/pdf · 428 KB</span>
+              <div class="ep-doc-actions"><a href="#">Open</a><button type="button">Delete</button></div>
+            </div>
+            <div class="ep-doc-card">
+              <span class="type">Aadhaar Card</span>
+              <span class="name">Naman_Doshi_Aadhaar.jpg</span>
+              <span class="meta">image/jpeg · 1.1 MB</span>
+              <div class="ep-doc-actions"><a href="#">Open</a><button type="button">Delete</button></div>
+            </div>
+          </div>
+          <div class="field-grid">
+            <div class="form-field">
+              <label>Document Type</label>
+              <select class="form-input"><option>Select document type</option><option>Biodata PDF</option><option>Aadhaar Card</option><option>PAN Card</option><option>Horoscope</option></select>
+              <span class="hint">Multiple Biodata PDFs are allowed. Each uploaded file is stored as a separate document entry.</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-section-foot">
+          <button class="btn-ghost" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Update This Section</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+
+// Section tab switching
+var epTabs = document.querySelectorAll('.ep-tab');
+var epPanels = document.querySelectorAll('.ep-panel');
+epTabs.forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    var target = tab.getAttribute('data-section');
+    epTabs.forEach(function (t) { t.classList.toggle('active', t === tab); });
+    epPanels.forEach(function (p) { p.classList.toggle('active', p.getAttribute('data-panel') === target); });
+  });
+});
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

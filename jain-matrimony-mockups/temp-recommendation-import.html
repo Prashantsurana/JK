@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temp Recommendation Import — Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  .imp-tabs { display: flex; gap: 0.35rem; background: var(--track); border-radius: 8px; padding: 3px; width: max-content; }
+  .imp-tabs button { border: none; background: none; font-family: inherit; padding: 0.45rem 0.95rem; font-size: 0.78rem; font-weight: 650; color: var(--ink-soft); cursor: pointer; border-radius: 6px; transition: background 0.15s ease, color 0.15s ease; }
+  .imp-tabs button:hover { color: var(--ink); }
+  .imp-tabs button.active { background: var(--accent); color: var(--accent-ink); }
+
+  .tri-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 900px) { .tri-grid { grid-template-columns: 1fr; } }
+
+  .imp-card { padding: 1.1rem 1.25rem 1.3rem; }
+  .imp-eyebrow { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 700; }
+  .imp-title { margin: 0.3rem 0 1rem; font-size: 1rem; font-weight: 700; letter-spacing: -0.005em; }
+
+  .entry-header-row { display: flex; align-items: center; justify-content: space-between; margin: 0.3rem 0 0.7rem; }
+  .entry-header-row .lbl { font-size: 0.71rem; color: var(--ink-soft); font-weight: 650; }
+
+  .entry-stack { display: flex; flex-direction: column; gap: 0.75rem; }
+  .entry-card { border: 1px solid var(--border); border-radius: 9px; padding: 0.85rem 0.9rem; display: flex; flex-direction: column; gap: 0.65rem; background: var(--track); }
+  .entry-top { display: flex; align-items: center; justify-content: space-between; }
+  .entry-top .ttl { font-size: 0.76rem; font-weight: 700; color: var(--ink); }
+  .entry-remove { border: none; background: none; color: var(--exclude); font-size: 0.7rem; font-weight: 650; cursor: pointer; font-family: inherit; padding: 0; }
+  .entry-remove:hover { text-decoration: underline; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.15rem; }
+  .id-chip { font-family: ui-monospace, "SF Mono", monospace; font-size: 0.67rem; font-weight: 650; color: var(--ink); background: var(--surface-solid); border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.55rem; }
+  .chip-cap { font-size: 0.63rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 700; margin-bottom: 0.3rem; }
+
+  .csv-required { font-size: 0.71rem; color: var(--ink-faint); margin-top: 0.2rem; }
+  .csv-required code { font-family: ui-monospace, "SF Mono", monospace; font-size: 0.68rem; background: var(--surface-solid); border: 1px solid var(--border); border-radius: 4px; padding: 0.05rem 0.3rem; }
+  .file-chosen { font-size: 0.73rem; color: var(--ink-soft); margin-top: 0.5rem; }
+
+  .preview-group { border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+  .preview-group + .preview-group { margin-top: 0.75rem; }
+  .preview-group-head { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.8rem; background: var(--track); }
+  .preview-group-head strong { font-size: 0.76rem; font-weight: 700; color: var(--ink); }
+  .preview-group-head span { font-size: 0.68rem; color: var(--ink-faint); font-weight: 650; }
+
+  .error-card { border: 1px solid var(--exclude-wash); background: var(--exclude-wash); border-radius: 9px; padding: 0.7rem 0.85rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .error-card .row { font-size: 0.75rem; color: var(--exclude); }
+  .error-card .row strong { font-weight: 700; }
+
+  .flash-msg { border-radius: 8px; padding: 0.55rem 0.75rem; font-size: 0.75rem; font-weight: 600; }
+  .flash-msg.ok { background: var(--success-wash); color: var(--success); }
+  .flash-msg.bad { background: var(--exclude-wash); color: var(--exclude); }
+
+  .res-block { margin-top: 1rem; }
+  .res-block:first-of-type { margin-top: 0; }
+  .res-block-title { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); font-weight: 700; margin-bottom: 0.45rem; }
+  .res-line { font-size: 0.79rem; color: var(--ink); font-weight: 600; }
+  .res-list { display: flex; flex-direction: column; }
+  .res-row { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.78rem; }
+  .res-row:last-child { border-bottom: none; }
+  .res-row strong { color: var(--ink); font-weight: 650; }
+  .res-row span { font-size: 0.71rem; color: var(--ink-faint); }
+  .res-row.muted strong { color: var(--ink-soft); }
+  .empty-note { font-size: 0.78rem; color: var(--ink-faint); padding: 0.6rem 0; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item active" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">Temp Recommendation Import<small>Admin</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+      <!-- PAGE CONTENT GOES HERE -->
+      <div class="page-head">
+        <div>
+          <h1>Recommendation Import Workspace</h1>
+          <div class="sub">Manual entry for one candidate at a time, or CSV / XLSX preview import — review parsed rows before anything is written to the database.</div>
+        </div>
+        <div class="page-head-actions">
+          <span class="sect-tag">Temporary Workspace</span>
+        </div>
+      </div>
+
+      <div class="imp-tabs" id="impTabs">
+        <button type="button" class="active" data-tab="manual">Manual Entry</button>
+        <button type="button" data-tab="csv">CSV / XLSX Preview Import</button>
+      </div>
+
+      <div class="tri-grid">
+        <section class="glass-card imp-card">
+          <div class="imp-eyebrow">Import Form</div>
+
+          <div class="step-pane active" data-pane="manual">
+            <h2 class="imp-title">Single Candidate, Multiple Entries</h2>
+
+            <div class="form-field" style="margin-bottom: 0.9rem;">
+              <label>Candidate ID</label>
+              <input class="form-input" type="text" value="F7628" placeholder="F7628" autocomplete="off">
+            </div>
+
+            <div class="entry-header-row">
+              <div class="lbl">Recommendation Entries</div>
+              <button type="button" class="btn-ghost">+ Add Row</button>
+            </div>
+
+            <div class="entry-stack">
+              <div class="entry-card">
+                <div class="entry-top">
+                  <div class="ttl">Entry 1</div>
+                  <button type="button" class="entry-remove">Remove</button>
+                </div>
+                <div class="form-field">
+                  <label>Sent IDs</label>
+                  <textarea class="form-input" rows="2" placeholder="M11238 M12111 M11440 M9410">M11238 M12111 M11440 M9410</textarea>
+                </div>
+                <div class="field-grid">
+                  <div class="form-field">
+                    <label>Sent Date</label>
+                    <input class="form-input" type="text" value="25-Jun-23" placeholder="25-Jun-23">
+                    <span class="hint">Use format like &#96;25-Jun-23&#96;</span>
+                  </div>
+                  <div class="form-field">
+                    <label>Sent By</label>
+                    <select class="form-input">
+                      <option>Select staff</option>
+                      <option selected>Priya Mehta</option>
+                      <option>Rohit Shah</option>
+                      <option>Anjali Desai</option>
+                      <option>Kunal Jain</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <div class="chip-cap">Parsed Sent IDs</div>
+                  <div class="chip-row">
+                    <span class="id-chip">M11238</span>
+                    <span class="id-chip">M12111</span>
+                    <span class="id-chip">M11440</span>
+                    <span class="id-chip">M9410</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="entry-card">
+                <div class="entry-top">
+                  <div class="ttl">Entry 2</div>
+                  <button type="button" class="entry-remove">Remove</button>
+                </div>
+                <div class="form-field">
+                  <label>Sent IDs</label>
+                  <textarea class="form-input" rows="2" placeholder="M11238 M12111 M11440 M9410">M10021 M10877</textarea>
+                </div>
+                <div class="field-grid">
+                  <div class="form-field">
+                    <label>Sent Date</label>
+                    <input class="form-input" type="text" value="02-Jul-23" placeholder="25-Jun-23">
+                    <span class="hint">Use format like &#96;25-Jun-23&#96;</span>
+                  </div>
+                  <div class="form-field">
+                    <label>Sent By</label>
+                    <select class="form-input">
+                      <option>Select staff</option>
+                      <option>Priya Mehta</option>
+                      <option selected>Rohit Shah</option>
+                      <option>Anjali Desai</option>
+                      <option>Kunal Jain</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <div class="chip-cap">Parsed Sent IDs</div>
+                  <div class="chip-row">
+                    <span class="id-chip">M10021</span>
+                    <span class="id-chip">M10877</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flash-msg ok" style="margin-top: 0.9rem;">Manual recommendation import completed.</div>
+
+            <button type="button" class="btn-primary" style="margin-top: 0.9rem; width: 100%;">Import All Entries</button>
+          </div>
+
+          <div class="step-pane" data-pane="csv">
+            <h2 class="imp-title">CSV / XLSX Preview Before Import</h2>
+
+            <div class="dropzone" style="align-items: stretch; text-align: left;">
+              <strong>Upload CSV or XLSX</strong>
+              <span class="csv-required">Required headers: <code>Candidate ID</code>, <code>Sent IDs</code>, <code>Sent Date</code>, <code>Sent By</code></span>
+              <input class="form-input" type="file" accept=".csv,.xlsx" style="margin-top: 0.6rem;">
+              <div class="file-chosen">recommendations_batch_aug.csv</div>
+              <button type="button" class="btn-primary" style="margin-top: 0.6rem; align-self: flex-start;">Preview File</button>
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <div class="stat-grid">
+                <div class="stat-tile"><span class="label">Candidates</span><span class="value">2</span></div>
+                <div class="stat-tile"><span class="label">Entries</span><span class="value">5</span></div>
+                <div class="stat-tile"><span class="label">Errors</span><span class="value">1</span></div>
+              </div>
+
+              <div class="error-card" style="margin-top: 0.9rem;">
+                <div class="chip-cap" style="color: var(--exclude);">Preview Errors</div>
+                <div class="row"><strong>Error 1</strong> — Row 6: Missing Sent Date for candidate F5521</div>
+              </div>
+
+              <div style="margin-top: 0.9rem;">
+                <div class="preview-group">
+                  <div class="preview-group-head">
+                    <strong>Candidate F7628</strong>
+                    <span>3 entries</span>
+                  </div>
+                  <div class="table-scroll">
+                    <table class="dtable">
+                      <thead><tr><th>Row</th><th>Sent Date</th><th>Sent IDs</th><th>Sent By</th></tr></thead>
+                      <tbody>
+                        <tr><td>Row 2</td><td>25-Jun-23</td><td class="wrap">M11238, M12111, M11440, M9410</td><td>Priya Mehta</td></tr>
+                        <tr><td>Row 3</td><td>02-Jul-23</td><td class="wrap">M10021, M10877</td><td>Rohit Shah</td></tr>
+                        <tr><td>Row 4</td><td>10-Jul-23</td><td class="wrap">M10555</td><td>Anjali Desai</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="preview-group">
+                  <div class="preview-group-head">
+                    <strong>Candidate F5521</strong>
+                    <span>2 entries</span>
+                  </div>
+                  <div class="table-scroll">
+                    <table class="dtable">
+                      <thead><tr><th>Row</th><th>Sent Date</th><th>Sent IDs</th><th>Sent By</th></tr></thead>
+                      <tbody>
+                        <tr><td>Row 5</td><td>15-Jul-23</td><td class="wrap">M11890, M12004</td><td>Kunal Jain</td></tr>
+                        <tr><td>Row 7</td><td>22-Jul-23</td><td class="wrap">M10333</td><td>Priya Mehta</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn-primary" style="margin-top: 0.9rem; width: 100%;">Yes, Import Preview To DB</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-card imp-card">
+          <div class="imp-eyebrow">Latest Result</div>
+          <h2 class="imp-title">Import Summary</h2>
+
+          <div class="stat-grid">
+            <div class="stat-tile"><span class="label">Entries</span><span class="value">2</span></div>
+            <div class="stat-tile"><span class="label">Created</span><span class="value">5</span></div>
+            <div class="stat-tile"><span class="label">Skipped</span><span class="value">1</span></div>
+          </div>
+
+          <div class="res-block">
+            <div class="res-block-title">Candidate</div>
+            <div class="res-line">F7628 &#8211; Meera Shah</div>
+          </div>
+
+          <div class="res-block">
+            <div class="res-block-title">Entry Summaries</div>
+            <div class="res-list">
+              <div class="res-row">
+                <strong>Entry 1 &#8211; 25-Jun-23</strong>
+                <span>Created 4, skipped 0</span>
+              </div>
+              <div class="res-row">
+                <strong>Entry 2 &#8211; 02-Jul-23</strong>
+                <span>Created 1, skipped 1</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="res-block">
+            <div class="res-block-title">Created Recommendations</div>
+            <div class="res-list">
+              <div class="res-row"><strong>M11238</strong><span>Rohan Gandhi &#8211; 25-Jun-23</span></div>
+              <div class="res-row"><strong>M12111</strong><span>Aditya Kothari &#8211; 25-Jun-23</span></div>
+              <div class="res-row"><strong>M11440</strong><span>Devansh Oswal &#8211; 25-Jun-23</span></div>
+              <div class="res-row"><strong>M9410</strong><span>Yash Bafna &#8211; 25-Jun-23</span></div>
+              <div class="res-row"><strong>M10021</strong><span>Nikhil Sanghavi &#8211; 02-Jul-23</span></div>
+            </div>
+          </div>
+
+          <div class="res-block">
+            <div class="res-block-title">Skipped</div>
+            <div class="res-list">
+              <div class="res-row muted"><strong>M10877</strong><span>Already has an active recommendation &#8211; 02-Jul-23</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+
+// Import workspace tabs
+var impTabs = document.getElementById('impTabs');
+if (impTabs) {
+  impTabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-tab]');
+    if (!btn) return;
+    var tabId = btn.getAttribute('data-tab');
+    impTabs.querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.step-pane[data-pane]').forEach(function (pane) {
+      pane.classList.toggle('active', pane.getAttribute('data-pane') === tabId);
+    });
+  });
+}
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

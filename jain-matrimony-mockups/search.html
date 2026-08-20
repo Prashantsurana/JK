@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search &middot; Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Page-specific additions only — same radius/size scale as style.css, no new colors. */
+  .search-shell { display: grid; grid-template-columns: 268px 1fr; gap: 1rem; align-items: start; }
+  @media (max-width: 980px) { .search-shell { grid-template-columns: 1fr; } }
+  .filters { max-height: none; }
+  .pref-tab-pane { display: none; flex-direction: column; gap: 1.1rem; }
+  .pref-tab-pane.active { display: flex; }
+  .field-sub { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field-sub .sub-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 700; }
+  .addr-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.55rem; }
+  .addr-card-head strong { font-size: 0.74rem; color: var(--ink); }
+  .addr-card-head button { border: none; background: none; color: var(--ink-faint); font-size: 0.68rem; cursor: pointer; font-family: inherit; }
+  .addr-card-head button:hover { color: var(--exclude); }
+  .addr-stack { display: flex; flex-direction: column; gap: 0.7rem; }
+  .filter-hint-text { font-size: 0.68rem; color: var(--ink-faint); line-height: 1.4; }
+  .hero-bar { display: flex; align-items: flex-end; gap: 0.6rem; flex-wrap: wrap; padding: 0.9rem 1rem; }
+  .hero-fields { display: flex; gap: 0.55rem; flex: 1; flex-wrap: wrap; min-width: 260px; }
+  .hero-field { display: flex; flex-direction: column; gap: 0.3rem; min-width: 128px; }
+  .hero-field label { font-size: 0.63rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 700; }
+  .hero-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 0.15rem; }
+  .filter-toggle-btn { position: relative; }
+  .filter-toggle-badge { position: absolute; top: -6px; right: -6px; background: var(--accent); color: var(--accent-ink); font-size: 0.6rem; font-weight: 700; border-radius: 999px; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+  .view-toggle { display: inline-flex; background: var(--track); border-radius: 8px; padding: 3px; gap: 2px; }
+  .view-toggle button { border: none; background: none; font-family: inherit; padding: 0.32rem 0.7rem; font-size: 0.72rem; font-weight: 650; color: var(--ink-soft); cursor: pointer; border-radius: 6px; }
+  .view-toggle button.active { background: var(--accent); color: var(--accent-ink); }
+  .active-chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; padding: 0 1rem 0.9rem; }
+  .active-chip-row .chk { cursor: default; }
+  .active-chip-row .chk button { border: none; background: none; color: inherit; opacity: 0.7; font-size: 0.85rem; line-height: 1; padding: 0 0 0 0.25rem; cursor: pointer; }
+  .active-chip-row .chk button:hover { opacity: 1; }
+  .results-count-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .results-count-row .sub { color: var(--ink-soft); font-size: 0.78rem; }
+  .results-count-row .sub strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+  #cardGrid.list-mode { grid-template-columns: 1fr; }
+  #cardGrid.list-mode .p-card { flex-direction: row; align-items: center; gap: 1rem; }
+  #cardGrid.list-mode .p-top { flex: 1; }
+  #cardGrid.list-mode .p-stats, #cardGrid.list-mode .p-tags-wrap { flex: none; }
+  #cardGrid.list-mode .p-action { width: 140px; flex: none; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item active" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">Search<small>Core</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+      <!-- PAGE CONTENT -->
+      <div class="page-head">
+        <div>
+          <h1>Search</h1>
+          <div class="sub">Find profiles by name, mobile, profile number or DOB — then refine with caste, sect, education, occupation and location filters.</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-ghost" type="button">Clear filters</button>
+        </div>
+      </div>
+
+      <div class="glass-card hero-bar" id="heroBar">
+        <div class="hero-fields">
+          <div class="hero-field">
+            <label>Profile No</label>
+            <input class="form-input" type="text" placeholder="e.g. M123">
+          </div>
+          <div class="hero-field">
+            <label>Name</label>
+            <input class="form-input" type="text" placeholder="Enter full name">
+          </div>
+          <div class="hero-field">
+            <label>Mobile</label>
+            <input class="form-input" type="tel" placeholder="Enter mobile number">
+          </div>
+          <div class="hero-field">
+            <label>DOB</label>
+            <input class="form-input" type="date">
+          </div>
+        </div>
+        <button class="btn-primary" type="button">Search</button>
+        <button class="p-action filter-toggle-btn" type="button" id="filterToggleBtn" title="Advanced Filters">
+          Filters
+          <span class="filter-toggle-badge" id="filterBadge">4</span>
+        </button>
+        <div class="hero-divider"></div>
+        <div class="hero-field">
+          <label>Sort by</label>
+          <select class="form-input" id="sortBySelect">
+            <option>Latest</option>
+            <option>Oldest</option>
+            <option>Profile No Asc</option>
+            <option>Profile No Desc</option>
+            <option>Name A-Z</option>
+            <option>Age Low-High</option>
+            <option>Age High-Low</option>
+          </select>
+        </div>
+        <div class="hero-field">
+          <label>Gender</label>
+          <select class="form-input">
+            <option>All</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+        <div class="hero-field">
+          <label>View</label>
+          <div class="view-toggle" id="viewToggle">
+            <button type="button" class="active" data-view="grid">Grid</button>
+            <button type="button" data-view="list">List</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="active-chip-row">
+        <span class="chk on">Marital Status: Never Married <button type="button" aria-label="Remove filter">&times;</button></span>
+        <span class="chk on">Caste: Digambar <button type="button" aria-label="Remove filter">&times;</button></span>
+        <span class="chk on">Education: Engineering <button type="button" aria-label="Remove filter">&times;</button></span>
+        <span class="chk on">Current: Gujarat <button type="button" aria-label="Remove filter">&times;</button></span>
+      </div>
+
+      <div class="search-shell">
+        <!-- Advanced filters panel -->
+        <div class="glass-card filters" id="filtersPanel">
+          <div class="filters-head">
+            <h2>Advanced Filters</h2>
+            <div class="filters-head-actions">
+              <button type="button">Clear</button>
+            </div>
+          </div>
+
+          <div class="tabs" id="prefTabs" style="flex:none;">
+            <div class="tab-pill" id="prefTabPill"></div>
+            <button type="button" class="tab active" data-pane="preferred">Preferred</button>
+            <button type="button" class="tab" data-pane="nonpreferred">Non Preferred</button>
+            <button type="button" class="tab" data-pane="internal">Internal Office</button>
+          </div>
+
+          <!-- Preferred pane -->
+          <div class="pref-tab-pane active" data-pane="preferred">
+            <div class="field">
+              <label>Birth Year Range</label>
+              <div class="range-row">
+                <input type="number" placeholder="From" value="1993">
+                <span class="to">&mdash;</span>
+                <input type="number" placeholder="To" value="1999">
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Height Range (cm)</label>
+              <div class="range-row">
+                <input type="number" placeholder="From" value="155">
+                <span class="to">&mdash;</span>
+                <input type="number" placeholder="To" value="175">
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="filters-head" style="margin-bottom:0;">
+                <label style="margin:0;">Address Type Filters</label>
+                <button type="button" style="font-size:0.68rem;">+ Add Address Filter</button>
+              </div>
+              <div class="addr-stack">
+                <div class="note-item">
+                  <div class="addr-card-head">
+                    <strong>Current Location</strong>
+                    <button type="button">Remove</button>
+                  </div>
+                  <div class="field-sub" style="margin-bottom:0.55rem;">
+                    <span class="sub-label">Countries</span>
+                    <div class="chip-group">
+                      <span class="chk on">India <span class="dot"></span></span>
+                    </div>
+                  </div>
+                  <div class="field-sub" style="margin-bottom:0.55rem;">
+                    <span class="sub-label">States</span>
+                    <div class="chip-group">
+                      <span class="chk on">Gujarat <span class="dot"></span></span>
+                      <span class="chk">Maharashtra <span class="dot"></span></span>
+                      <span class="chk">Rajasthan <span class="dot"></span></span>
+                    </div>
+                  </div>
+                  <div class="field-sub">
+                    <span class="sub-label">Districts</span>
+                    <div class="chip-group">
+                      <span class="chk on">Ahmedabad <span class="dot"></span></span>
+                      <span class="chk">Surat <span class="dot"></span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Marital Status</label>
+              <select class="city-select">
+                <option>Any status</option>
+                <option selected>Never Married</option>
+                <option>Divorced</option>
+                <option>Widowed</option>
+                <option>Awaiting Divorce</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Caste</label>
+              <div class="chip-group">
+                <span class="chk on">Digambar <span class="dot"></span></span>
+                <span class="chk">Shwetambar <span class="dot"></span></span>
+                <span class="chk">Deravasi <span class="dot"></span></span>
+                <span class="chk">Sthanakvasi <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Sakha</label>
+              <div class="chip-group">
+                <span class="chk">Oswal <span class="dot"></span></span>
+                <span class="chk">Porwal <span class="dot"></span></span>
+                <span class="chk">Khandelwal <span class="dot"></span></span>
+                <span class="chk">Agarwal Jain <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Sampraday</label>
+              <div class="chip-group">
+                <span class="chk">Digambar <span class="dot"></span></span>
+                <span class="chk">Shwetambar <span class="dot"></span></span>
+                <span class="chk">Sthanakvasi <span class="dot"></span></span>
+                <span class="chk">Terapanthi <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Education</label>
+              <div class="chip-group">
+                <span class="chk on">Engineering <span class="dot"></span></span>
+                <span class="chk">Medical <span class="dot"></span></span>
+                <span class="chk">Commerce / CA <span class="dot"></span></span>
+                <span class="chk">Arts <span class="dot"></span></span>
+                <span class="chk">Doctorate (Pursuing) <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Degree Name</label>
+              <div class="chip-group">
+                <span class="chk on">B.Tech <span class="dot"></span></span>
+                <span class="chk">MBBS <span class="dot"></span></span>
+                <span class="chk">CA <span class="dot"></span></span>
+                <span class="chk">MBA <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Occupation</label>
+              <div class="chip-group">
+                <span class="chk">Software Engineer <span class="dot"></span></span>
+                <span class="chk">Chartered Accountant <span class="dot"></span></span>
+                <span class="chk">Doctor <span class="dot"></span></span>
+                <span class="chk">Business Owner <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Tag</label>
+              <div class="chip-group">
+                <span class="chk">VIP <span class="dot"></span></span>
+                <span class="chk">Premium <span class="dot"></span></span>
+                <span class="chk">Follow-up <span class="dot"></span></span>
+                <span class="chk">NRI <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="apply-bar">
+              <button class="btn-primary" type="button">Apply Filters (4)</button>
+              <div class="apply-hint">4 filters active &middot; applied instantly to results</div>
+            </div>
+          </div>
+
+          <!-- Non Preferred pane -->
+          <div class="pref-tab-pane" data-pane="nonpreferred">
+            <div class="filter-hint-text">Profiles matching these criteria will be excluded from the results below, even if they match your preferred filters.</div>
+
+            <div class="field">
+              <label>Address Type Filters</label>
+              <div class="addr-stack">
+                <div class="note-item">
+                  <div class="addr-card-head">
+                    <strong>Native Location</strong>
+                    <button type="button">Remove</button>
+                  </div>
+                  <div class="field-sub">
+                    <span class="sub-label">States</span>
+                    <div class="chip-group">
+                      <span class="chk on">Delhi <span class="dot"></span></span>
+                      <span class="chk">Punjab <span class="dot"></span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Marital Status</label>
+              <select class="city-select">
+                <option>Any status</option>
+                <option>Divorced</option>
+                <option>Widowed</option>
+                <option>Awaiting Divorce</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Caste</label>
+              <div class="chip-group">
+                <span class="chk on">Sthanakvasi <span class="dot"></span></span>
+                <span class="chk">Deravasi <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Sakha</label>
+              <div class="chip-group">
+                <span class="chk">Oswal <span class="dot"></span></span>
+                <span class="chk on">Khandelwal <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Sampraday</label>
+              <div class="chip-group">
+                <span class="chk">Terapanthi <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Education</label>
+              <div class="chip-group">
+                <span class="chk">Arts <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Degree Name</label>
+              <div class="chip-group">
+                <span class="chk">MBA <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Occupation</label>
+              <div class="chip-group">
+                <span class="chk">Business Owner <span class="dot"></span></span>
+              </div>
+            </div>
+
+            <div class="apply-bar">
+              <button class="btn-primary" type="button">Apply Filters (3)</button>
+              <div class="apply-hint">3 exclusions active</div>
+            </div>
+          </div>
+
+          <!-- Internal Office pane -->
+          <div class="pref-tab-pane" data-pane="internal">
+            <div class="filter-hint-text">Visible to office/admin roles only &middot; filters by back-office workflow state rather than partner preferences.</div>
+
+            <div class="field">
+              <label>Profile Status</label>
+              <select class="city-select">
+                <option>Any profile status</option>
+                <option selected>Active</option>
+                <option>Inactive</option>
+                <option>Engaged/Married</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Tier</label>
+              <select class="city-select">
+                <option>Any tier</option>
+                <option>Premium</option>
+                <option>Gold</option>
+                <option>Standard</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Profile Category</label>
+              <select class="city-select">
+                <option>Any profile category</option>
+                <option>Self Registered</option>
+                <option>Office Assisted</option>
+                <option>Referral</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Payment</label>
+              <select class="city-select">
+                <option>All payment states</option>
+                <option>Paid</option>
+                <option>Unpaid</option>
+              </select>
+            </div>
+
+            <div class="apply-bar">
+              <button class="btn-primary" type="button">Apply Filters</button>
+              <div class="apply-hint">Office-only view</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="main" style="padding:0;">
+          <div class="results-count-row" style="margin-bottom:0.85rem;">
+            <div class="sub"><strong>128</strong> profiles found</div>
+          </div>
+
+          <div class="card-grid" id="cardGrid">
+            <div class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--accent);">PS</div>
+                <div class="p-id">
+                  <span class="name">Priya Shah</span>
+                  <span class="id">Profile #J10234</span>
+                </div>
+              </div>
+              <div class="p-stats">
+                <span>27 yrs</span>
+                <span>Female</span>
+                <span>Never Married</span>
+              </div>
+              <div class="p-line">Ahmedabad, Gujarat</div>
+              <div class="p-line"><strong>B.Tech Computer Science</strong></div>
+              <div class="p-line">Software Engineer, Infosys</div>
+              <div class="p-tags">
+                <span class="sect-tag">Shwetambar</span>
+                <span class="pill contacted">Active</span>
+              </div>
+              <button class="p-action" type="button">View Profile</button>
+            </div>
+
+            <div class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--info);">RM</div>
+                <div class="p-id">
+                  <span class="name">Rohan Mehta</span>
+                  <span class="id">Profile #J10567</span>
+                </div>
+              </div>
+              <div class="p-stats">
+                <span>30 yrs</span>
+                <span>Male</span>
+                <span>Never Married</span>
+              </div>
+              <div class="p-line">Pune, Maharashtra</div>
+              <div class="p-line"><strong>MBA Finance</strong></div>
+              <div class="p-line">Chartered Accountant</div>
+              <div class="p-tags">
+                <span class="sect-tag">Digambar</span>
+                <span class="pill contacted">Active</span>
+              </div>
+              <button class="p-action" type="button">View Profile</button>
+            </div>
+
+            <div class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--accent);">NK</div>
+                <div class="p-id">
+                  <span class="name">Neha Kothari</span>
+                  <span class="id">Profile #J10812</span>
+                </div>
+              </div>
+              <div class="p-stats">
+                <span>26 yrs</span>
+                <span>Female</span>
+                <span>Never Married</span>
+              </div>
+              <div class="p-line">Indore, Madhya Pradesh</div>
+              <div class="p-line"><strong>MBBS</strong></div>
+              <div class="p-line">Doctor, City Hospital</div>
+              <div class="p-tags">
+                <span class="sect-tag">Shwetambar</span>
+                <span class="pill shortlisted">Engaged/Married</span>
+              </div>
+              <button class="p-action" type="button">View Profile</button>
+            </div>
+
+            <div class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--info);">AJ</div>
+                <div class="p-id">
+                  <span class="name">Aditya Jain</span>
+                  <span class="id">Profile #J10999</span>
+                </div>
+              </div>
+              <div class="p-stats">
+                <span>32 yrs</span>
+                <span>Male</span>
+                <span>Divorced</span>
+              </div>
+              <div class="p-line">Jaipur, Rajasthan</div>
+              <div class="p-line"><strong>B.Com, CA</strong></div>
+              <div class="p-line">Business Owner, Textiles</div>
+              <div class="p-tags">
+                <span class="sect-tag">Sthanakvasi</span>
+                <span class="pill contacted">Active</span>
+              </div>
+              <button class="p-action" type="button">View Profile</button>
+            </div>
+
+            <div class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--accent);">SB</div>
+                <div class="p-id">
+                  <span class="name">Simran Bafna</span>
+                  <span class="id">Profile #J11045</span>
+                </div>
+              </div>
+              <div class="p-stats">
+                <span>29 yrs</span>
+                <span>Female</span>
+                <span>Never Married</span>
+              </div>
+              <div class="p-line">Mumbai, Maharashtra</div>
+              <div class="p-line"><strong>M.Tech Data Science</strong></div>
+              <div class="p-line">Data Scientist, TCS</div>
+              <div class="p-tags">
+                <span class="sect-tag">Terapanthi</span>
+                <span class="pill pending">Inactive</span>
+              </div>
+              <button class="p-action" type="button">View Profile</button>
+            </div>
+
+            <div class="p-card">
+              <div class="p-top">
+                <div class="p-avatar" style="background:var(--info);">KS</div>
+                <div class="p-id">
+                  <span class="name">Kunal Sanghavi</span>
+                  <span class="id">Profile #J11102</span>
+                </div>
+              </div>
+              <div class="p-stats">
+                <span>28 yrs</span>
+                <span>Male</span>
+                <span>Never Married</span>
+              </div>
+              <div class="p-line">Surat, Gujarat</div>
+              <div class="p-line"><strong>B.E. Mechanical</strong></div>
+              <div class="p-line">Manager, Textile Exports</div>
+              <div class="p-tags">
+                <span class="sect-tag">Digambar</span>
+                <span class="pill contacted">Active</span>
+              </div>
+              <button class="p-action" type="button">View Profile</button>
+            </div>
+          </div>
+
+          <div class="results-foot">
+            <span>Page 2 of 22 | 128 profiles</span>
+            <div class="pages">
+              <button type="button">&larr;</button>
+              <button type="button">1</button>
+              <button type="button" class="on">2</button>
+              <button type="button">3</button>
+              <button type="button">&hellip;</button>
+              <button type="button">22</button>
+              <button type="button">&rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+
+// Preference mode tabs (Preferred / Non Preferred / Internal Office) with sliding pill
+(function () {
+  var tabsWrap = document.getElementById('prefTabs');
+  var pill = document.getElementById('prefTabPill');
+  var tabs = tabsWrap.querySelectorAll('.tab');
+  var panes = document.querySelectorAll('.pref-tab-pane');
+
+  function movePill(tab) {
+    pill.style.width = tab.offsetWidth + 'px';
+    pill.style.transform = 'translateX(' + tab.offsetLeft + 'px)';
+  }
+
+  function activate(tab) {
+    tabs.forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    movePill(tab);
+    var key = tab.getAttribute('data-pane');
+    panes.forEach(function (p) { p.classList.toggle('active', p.getAttribute('data-pane') === key); });
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () { activate(tab); });
+  });
+
+  window.addEventListener('load', function () { movePill(tabsWrap.querySelector('.tab.active')); });
+  window.addEventListener('resize', function () { movePill(tabsWrap.querySelector('.tab.active')); });
+})();
+
+// Chip toggles (caste / sakha / sampraday / education / degree / occupation / tag / address)
+document.querySelectorAll('.chip-group .chk').forEach(function (chip) {
+  chip.addEventListener('click', function () { chip.classList.toggle('on'); });
+});
+
+// Grid / List view toggle
+(function () {
+  var toggle = document.getElementById('viewToggle');
+  var grid = document.getElementById('cardGrid');
+  toggle.querySelectorAll('button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      toggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      grid.classList.toggle('list-mode', btn.getAttribute('data-view') === 'list');
+    });
+  });
+})();
+
+// Collapse/expand advanced filters panel
+(function () {
+  var btn = document.getElementById('filterToggleBtn');
+  var panel = document.getElementById('filtersPanel');
+  btn.addEventListener('click', function () {
+    panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  });
+})();
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

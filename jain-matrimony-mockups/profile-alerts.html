@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Alerts · Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Page-specific: alert rows and severity badges (not covered by shared .pill variants) */
+  .alert-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .alert-row {
+    background: var(--surface-solid); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.9rem 1.05rem; display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 1rem; cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .alert-row:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); box-shadow: 0 4px 14px -6px var(--shadow); }
+  .alert-row.is-hidden { display: none; }
+  .alert-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .alert-top { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .profile-badge { font-size: 0.72rem; font-weight: 700; color: var(--ink); background: var(--track); border-radius: 6px; padding: 0.22rem 0.55rem; }
+  .severity-badge { display: inline-flex; align-items: center; gap: 0.32rem; font-size: 0.64rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .severity-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; }
+  .severity-badge.high { background: var(--exclude-wash); color: var(--exclude); }
+  .severity-badge.high::before { background: var(--exclude); }
+  .severity-badge.medium { background: var(--warning-wash); color: var(--warning); }
+  .severity-badge.medium::before { background: var(--warning); }
+  .alert-title { margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--ink); letter-spacing: -0.005em; }
+  .alert-meta { font-size: 0.71rem; color: var(--ink-faint); }
+  .alert-note { font-size: 0.75rem; color: var(--ink-soft); font-style: italic; background: var(--track); border-radius: 7px; padding: 0.45rem 0.65rem; margin-top: 0.1rem; }
+  .alert-view-btn { flex: none; }
+  .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0.9rem; font-size: 0.72rem; color: var(--ink-faint); background: var(--track); border-radius: 10px; border: 1px solid var(--border); }
+  .pagination-bar .btn-ghost { padding: 0.4rem 0.75rem; font-size: 0.72rem; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item active" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">Profile Alerts<small>Core</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+      <div class="page-head">
+        <div>
+          <h1>Profile Alerts</h1>
+          <p class="sub">Open alerts are shown newest first. Renewal and follow-up alerts stay here until the linked package or note is updated.</p>
+        </div>
+        <div class="page-head-actions">
+          <a class="btn-ghost" href="search.html">Back to Search</a>
+        </div>
+      </div>
+
+      <div class="filter-bar chip-group" id="statusFilters">
+        <span class="chk on" data-filter="status" data-value="open"><span class="dot"></span>Open</span>
+        <span class="chk" data-filter="status" data-value="resolved"><span class="dot"></span>Resolved</span>
+        <span class="chk" data-filter="status" data-value="all"><span class="dot"></span>All</span>
+      </div>
+
+      <div class="filter-bar chip-group" id="typeFilters">
+        <span class="chk on" data-filter="type" data-value="all"><span class="dot"></span>All Alerts</span>
+        <span class="chk" data-filter="type" data-value="payment"><span class="dot"></span>Payment Alerts</span>
+        <span class="chk" data-filter="type" data-value="follow_up"><span class="dot"></span>Follow-up Alerts</span>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-tile">
+          <span class="label">Open Alerts</span>
+          <b class="value" id="statOpen">4</b>
+        </div>
+        <div class="stat-tile">
+          <span class="label">Payment Alerts</span>
+          <b class="value">3</b>
+        </div>
+        <div class="stat-tile">
+          <span class="label">Follow-up Alerts</span>
+          <b class="value">2</b>
+        </div>
+      </div>
+
+      <div class="alert-list" id="alertList">
+        <div class="alert-row" data-status="open" data-type="payment">
+          <div class="alert-main">
+            <div class="alert-top">
+              <span class="profile-badge">#JK10234 Priya Shah</span>
+              <span class="severity-badge high">High</span>
+            </div>
+            <h3 class="alert-title">Payment renewal due for Gold package expiring in 3 days</h3>
+            <div class="alert-meta">Gold package | Mumbai, Maharashtra | Follow-up due 22 Aug 2026, 05:00 PM | Linked to Payment</div>
+            <div class="alert-meta">Created 18 Aug 2026, 10:15 AM | Open</div>
+            <div class="alert-note">Client requested a callback before renewing; check discount eligibility.</div>
+          </div>
+          <button type="button" class="btn-ghost alert-view-btn">Open Profile</button>
+        </div>
+
+        <div class="alert-row" data-status="open" data-type="follow_up">
+          <div class="alert-main">
+            <div class="alert-top">
+              <span class="profile-badge">#JK10877 Nikhil Mehta</span>
+              <span class="severity-badge medium">Medium</span>
+            </div>
+            <h3 class="alert-title">Follow-up call pending after profile shared with 3 matches</h3>
+            <div class="alert-meta">Silver package | Ahmedabad, Gujarat | Follow-up due 21 Aug 2026, 11:30 AM | Linked to Note</div>
+            <div class="alert-meta">Created 17 Aug 2026, 04:40 PM | Open</div>
+            <div class="alert-note">Family asked for a horoscope match report before the next step.</div>
+          </div>
+          <button type="button" class="btn-ghost alert-view-btn">Open Profile</button>
+        </div>
+
+        <div class="alert-row" data-status="open" data-type="payment">
+          <div class="alert-main">
+            <div class="alert-top">
+              <span class="profile-badge">#JK11029 Ridhi Jain</span>
+              <span class="severity-badge high">High</span>
+            </div>
+            <h3 class="alert-title">Package expired 2 days ago, auto-renewal failed</h3>
+            <div class="alert-meta">Platinum package | Pune, Maharashtra | Linked to Payment</div>
+            <div class="alert-meta">Created 16 Aug 2026, 09:05 AM | Open</div>
+          </div>
+          <button type="button" class="btn-ghost alert-view-btn">Open Profile</button>
+        </div>
+
+        <div class="alert-row" data-status="resolved" data-type="follow_up">
+          <div class="alert-main">
+            <div class="alert-top">
+              <span class="profile-badge">#JK09765 Sanjay Kothari</span>
+              <span class="severity-badge medium">Medium</span>
+            </div>
+            <h3 class="alert-title">Follow-up completed after shortlist review</h3>
+            <div class="alert-meta">Gold package | Indore, Madhya Pradesh | Linked to Note</div>
+            <div class="alert-meta">Created 10 Aug 2026, 01:20 PM | Resolved</div>
+            <div class="alert-note">Client confirmed interest in profile #JK10234; moving to next round.</div>
+          </div>
+          <button type="button" class="btn-ghost alert-view-btn">Open Profile</button>
+        </div>
+
+        <div class="alert-row" data-status="open" data-type="payment">
+          <div class="alert-main">
+            <div class="alert-top">
+              <span class="profile-badge">#JK11342 Kavya Doshi</span>
+              <span class="severity-badge high">High</span>
+            </div>
+            <h3 class="alert-title">Payment reminder: Platinum renewal due in 24 hours</h3>
+            <div class="alert-meta">Platinum package | Bengaluru, Karnataka | Follow-up due 20 Aug 2026, 06:00 PM | Linked to Payment</div>
+            <div class="alert-meta">Created 19 Aug 2026, 08:50 AM | Open</div>
+          </div>
+          <button type="button" class="btn-ghost alert-view-btn">Open Profile</button>
+        </div>
+
+        <div class="alert-row" data-status="resolved" data-type="payment">
+          <div class="alert-main">
+            <div class="alert-top">
+              <span class="profile-badge">#JK08654 Amit Sanghavi</span>
+              <span class="severity-badge medium">Medium</span>
+            </div>
+            <h3 class="alert-title">Renewal alert closed after payment received</h3>
+            <div class="alert-meta">Silver package | Jaipur, Rajasthan | Linked to Payment</div>
+            <div class="alert-meta">Created 05 Aug 2026, 02:35 PM | Resolved</div>
+          </div>
+          <button type="button" class="btn-ghost alert-view-btn">Open Profile</button>
+        </div>
+      </div>
+
+      <div class="pagination-bar">
+        <button type="button" class="btn-ghost" disabled>Previous</button>
+        <span id="pageInfo">Page 1 of 1 | 4 open alerts</span>
+        <button type="button" class="btn-ghost" disabled>Next</button>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+
+(function () {
+  var statusFilters = document.querySelectorAll('#statusFilters .chk');
+  var typeFilters = document.querySelectorAll('#typeFilters .chk');
+  var rows = document.querySelectorAll('#alertList .alert-row');
+  var pageInfo = document.getElementById('pageInfo');
+  var statOpen = document.getElementById('statOpen');
+  var statusValue = 'open';
+  var typeValue = 'all';
+
+  function applyFilters() {
+    var visible = 0;
+    rows.forEach(function (row) {
+      var matchesStatus = statusValue === 'all' || row.getAttribute('data-status') === statusValue;
+      var matchesType = typeValue === 'all' || row.getAttribute('data-type') === typeValue;
+      var show = matchesStatus && matchesType;
+      row.classList.toggle('is-hidden', !show);
+      if (show) visible += 1;
+    });
+    var noun = statusValue === 'all' ? 'alerts' : statusValue + ' alerts';
+    pageInfo.textContent = 'Page 1 of 1 | ' + visible + ' ' + noun;
+    if (statusValue === 'open') statOpen.textContent = visible;
+  }
+
+  function wireGroup(nodeList, onPick) {
+    nodeList.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        nodeList.forEach(function (c) { c.classList.remove('on'); });
+        chip.classList.add('on');
+        onPick(chip.getAttribute('data-value'));
+        applyFilters();
+      });
+    });
+  }
+
+  wireGroup(statusFilters, function (v) { statusValue = v; });
+  wireGroup(typeFilters, function (v) { typeValue = v; });
+  applyFilters();
+})();
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

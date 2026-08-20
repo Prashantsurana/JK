@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Profile Detail — Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  /* ---- page-specific additions, following the existing visual language ---- */
+  .pd-hero { display: flex; gap: 1.1rem; padding: 1.15rem 1.25rem; align-items: flex-start; }
+  .pd-photo {
+    width: 92px; height: 92px; border-radius: 11px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 1.6rem; font-family: ui-serif, Georgia, serif;
+  }
+  .pd-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .pd-topline { display: flex; align-items: center; gap: 0.55rem; }
+  .pd-eyebrow { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: var(--ink-faint); font-family: ui-monospace, monospace; }
+  .pd-name { margin: 0; font-size: 1.35rem; }
+  .pill.active { background: var(--success-wash); color: var(--success); }
+  .pill.active::before { background: var(--success); }
+  .pd-about { margin: 0; font-size: 0.79rem; color: var(--ink-soft); line-height: 1.5; max-width: 62ch; }
+  .pd-tag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .pd-tag { font-size: 0.66rem; font-weight: 650; padding: 0.2rem 0.55rem; border-radius: 999px; background: var(--accent-wash); color: var(--accent); }
+  .pd-contact-row { display: flex; gap: 0.55rem; flex-wrap: wrap; margin-top: 0.15rem; }
+  .pd-actions { display: flex; flex-direction: column; gap: 0.5rem; flex: none; width: 208px; }
+  .pd-action-btn {
+    display: flex; flex-direction: column; gap: 0.1rem; text-align: left;
+    border: 1px solid var(--border); background: var(--surface-solid); border-radius: 8px;
+    padding: 0.55rem 0.7rem; cursor: pointer; font-family: inherit; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .pd-action-btn:hover { border-color: var(--accent); background: var(--accent-wash); }
+  .pd-action-btn strong { font-size: 0.79rem; color: var(--ink); }
+  .pd-action-btn span { font-size: 0.66rem; color: var(--ink-faint); }
+
+  .pd-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1.1rem; align-items: start; }
+
+  .pd-tabbar { display: flex; flex-wrap: wrap; gap: 0.2rem; background: var(--track); border-radius: 8px; padding: 3px; margin-bottom: 1rem; }
+  .pd-tabbar button {
+    background: none; border: none; font-family: inherit; padding: 0.42rem 0.75rem; font-size: 0.73rem;
+    font-weight: 650; color: var(--ink-soft); cursor: pointer; border-radius: 6px; transition: background 0.15s ease, color 0.15s ease;
+  }
+  .pd-tabbar button:hover { color: var(--ink); }
+  .pd-tabbar button.active { background: var(--accent); color: var(--accent-ink); }
+
+  .pd-sect { margin-bottom: 1.25rem; }
+  .pd-sect:last-child { margin-bottom: 0; }
+  .pd-sect-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem; }
+  .pd-sect-head h3 { margin: 0; font-size: 0.83rem; font-weight: 700; letter-spacing: -0.005em; }
+  .pd-edit-btn { border: none; background: none; color: var(--ink-faint); font-size: 0.68rem; font-weight: 650; cursor: pointer; font-family: inherit; padding: 0.15rem 0.4rem; border-radius: 5px; }
+  .pd-edit-btn:hover { color: var(--accent); background: var(--accent-wash); }
+
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem 1.1rem; background: var(--track); border-radius: 8px; padding: 0.9rem 1rem; }
+  .info-grid .kv { display: flex; flex-direction: column; gap: 0.18rem; min-width: 0; }
+  .info-grid .kv.full { grid-column: 1 / -1; }
+  .info-grid .k { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 700; }
+  .info-grid .v { font-size: 0.79rem; color: var(--ink); font-weight: 600; }
+  .info-grid .v.empty { color: var(--ink-faint); font-weight: 500; font-style: italic; }
+
+  .pd-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.75rem; }
+  .pd-subcard { border: 1px solid var(--border); background: var(--surface-solid); border-radius: 9px; padding: 0.75rem 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .pd-subcard-title { font-size: 0.78rem; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .pd-subcard-sub { font-size: 0.68rem; color: var(--ink-faint); }
+  .pd-subcard .info-grid { grid-template-columns: 1fr; background: none; padding: 0; gap: 0.4rem; }
+  .pd-badge { font-size: 0.6rem; font-weight: 700; padding: 0.12rem 0.4rem; border-radius: 5px; background: var(--success-wash); color: var(--success); }
+  .pd-badge.warn { background: var(--warning-wash); color: var(--warning); }
+  .pd-subcard-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; padding-top: 0.3rem; border-top: 1px solid var(--border); margin-top: 0.15rem; }
+  .pd-link-btn { font-size: 0.68rem; font-weight: 650; color: var(--accent); background: var(--accent-wash); border: none; border-radius: 6px; padding: 0.32rem 0.55rem; cursor: pointer; font-family: inherit; }
+  .pd-link-btn:hover { background: var(--accent); color: var(--accent-ink); }
+  .pd-link-btn.ghost { background: var(--track); color: var(--ink-soft); }
+
+  .pd-educareer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+
+  .pd-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.65rem; }
+  .pd-gallery-item { position: relative; aspect-ratio: 3/4; border-radius: 9px; overflow: hidden; border: 1px solid var(--border); background: var(--track); display: flex; align-items: center; justify-content: center; }
+  .pd-gallery-item .ph-fallback { font-size: 1.6rem; color: var(--ink-faint); }
+  .pd-gallery-badge { position: absolute; bottom: 6px; left: 6px; right: 6px; font-size: 0.6rem; font-weight: 700; text-align: center; padding: 0.15rem 0.3rem; border-radius: 5px; background: color-mix(in srgb, var(--ink) 70%, transparent); color: #fff; }
+  .pd-gallery-badge.primary { background: var(--accent); }
+
+  .pd-notes { background: var(--surface-solid); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; max-height: calc(100vh - 200px); position: sticky; top: 1.25rem; }
+  .pd-notes-head { padding: 0.9rem 1rem 0.7rem; border-bottom: 1px solid var(--border); }
+  .pd-notes-head h3 { margin: 0 0 0.55rem; font-size: 0.85rem; }
+  .pd-note-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+  .pd-note-stat { background: var(--track); border-radius: 6px; padding: 0.4rem 0.3rem; text-align: center; }
+  .pd-note-stat strong { display: block; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+  .pd-note-stat span { font-size: 0.56rem; color: var(--ink-faint); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .pd-note-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); }
+  .pd-note-filters select { border: 1px solid var(--border); border-radius: 6px; background: var(--surface-solid); color: var(--ink); padding: 0.32rem 0.4rem; font-size: 0.68rem; font-family: inherit; }
+  .pd-note-list { flex: 1; overflow-y: auto; padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.65rem; min-height: 160px; }
+  .pd-note-bubble { background: var(--track); border-radius: 9px; padding: 0.6rem 0.7rem; }
+  .pd-note-top { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; margin-bottom: 0.3rem; }
+  .pd-note-type { font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 5px; background: var(--info-wash); color: var(--info); text-transform: uppercase; letter-spacing: 0.03em; }
+  .pd-note-time { font-size: 0.62rem; color: var(--ink-faint); }
+  .pd-note-text { font-size: 0.76rem; color: var(--ink-soft); line-height: 1.45; margin: 0 0 0.3rem; }
+  .pd-note-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+  .pd-note-outcome { font-size: 0.63rem; font-weight: 650; color: var(--accent); }
+  .pd-note-author { font-size: 0.62rem; color: var(--ink-faint); }
+  .pd-note-composer { border-top: 1px solid var(--border); padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .pd-note-composer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+  .pd-note-composer select, .pd-note-composer input { border: 1px solid var(--border); border-radius: 6px; background: var(--surface-solid); color: var(--ink); padding: 0.35rem 0.45rem; font-size: 0.7rem; font-family: inherit; }
+  .pd-note-composer textarea { min-height: 54px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-solid); color: var(--ink); padding: 0.45rem 0.55rem; font-size: 0.76rem; font-family: inherit; resize: vertical; }
+  .pd-note-composer .btn-primary { align-self: flex-end; padding: 0.4rem 0.8rem; font-size: 0.74rem; }
+
+  .rec-metric-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.55rem; margin-bottom: 1.1rem; }
+  .rec-metric-tile { background: var(--track); border-radius: 8px; padding: 0.55rem 0.5rem; text-align: center; }
+  .rec-metric-tile strong { display: block; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .rec-metric-tile span { font-size: 0.6rem; color: var(--ink-faint); font-weight: 650; }
+  .rec-subtabs { display: inline-flex; background: var(--track); border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 1rem; }
+  .rec-subtabs button { background: none; border: none; font-family: inherit; padding: 0.4rem 0.9rem; font-size: 0.74rem; font-weight: 650; color: var(--ink-soft); cursor: pointer; border-radius: 6px; }
+  .rec-subtabs button.active { background: var(--accent); color: var(--accent-ink); }
+  .rec-pane { display: none; }
+  .rec-pane.active { display: block; }
+
+  @media (max-width: 980px) {
+    .pd-wrap { grid-template-columns: 1fr; }
+    .pd-notes { position: static; max-height: none; }
+    .pd-educareer-grid { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr 1fr; }
+    .rec-metric-row { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .pd-hero { flex-direction: column; }
+    .pd-actions { width: 100%; flex-direction: row; flex-wrap: wrap; }
+    .info-grid { grid-template-columns: 1fr; }
+    .rec-metric-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item active" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">Profile Detail<small>Core</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+      <!-- PAGE CONTENT GOES HERE -->
+      <div class="page-head">
+        <div>
+          <h1>Profile Detail</h1>
+          <div class="sub">Full record for a single candidate — personal, family, education, career, media and match-history data, mirroring the assignment reviewer's read view.</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-ghost" type="button">‹ Back to Assigned Profiles</button>
+          <button class="btn-primary" type="button">✎ Edit Profile</button>
+        </div>
+      </div>
+
+      <div class="glass-card pd-hero">
+        <div class="pd-photo">PC</div>
+        <div class="pd-info">
+          <div class="pd-topline">
+            <span class="pd-eyebrow">Profile #JKM-10482</span>
+            <span class="pill active">active</span>
+          </div>
+          <h1 class="pd-name">Priya Chordia</h1>
+          <div class="pill-row" style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+            <span class="pill pending">27 yrs</span>
+            <span class="pill pending">Never Married</span>
+            <span class="pill pending">📍 Pune, Maharashtra</span>
+          </div>
+          <p class="pd-about">Working as a Senior UX Designer at a product company in Pune. Looking for a well-settled, family-oriented match from a Digambar Jain Sampraday background. Enjoys travelling and classical music.</p>
+          <div class="pd-tag-row">
+            <span class="pd-tag">Premium Package</span>
+            <span class="pd-tag">Documents Verified</span>
+            <span class="pd-tag">NRI Preferred</span>
+          </div>
+          <div class="pd-contact-row">
+            <button class="p-action" type="button">📞 View Phone Number</button>
+            <button class="p-action" type="button">✉ View Email</button>
+          </div>
+        </div>
+        <div class="pd-actions">
+          <button class="pd-action-btn" type="button"><strong>82% completed</strong><span>See what to add</span></button>
+          <button class="pd-action-btn" type="button"><strong>Persona</strong><span>CRM &amp; Package details</span></button>
+          <button class="pd-action-btn" type="button"><strong>🔔 Open Alerts</strong><span>2 alerts need attention</span></button>
+        </div>
+      </div>
+
+      <div class="pd-wrap">
+        <div class="glass-card" style="padding: 1.1rem 1.25rem 1.35rem;">
+          <div class="pd-tabbar" id="pdTabbar">
+            <button type="button" class="active" data-tab="overview">Overview</button>
+            <button type="button" data-tab="contacts">Contacts</button>
+            <button type="button" data-tab="career">Education &amp; Career</button>
+            <button type="button" data-tab="family">Family</button>
+            <button type="button" data-tab="relatives">Relatives</button>
+            <button type="button" data-tab="addresses">Addresses</button>
+            <button type="button" data-tab="preferences">Preferences</button>
+            <button type="button" data-tab="media">Media &amp; Documents</button>
+            <button type="button" data-tab="recommendations">Recommendations</button>
+          </div>
+
+          <!-- OVERVIEW -->
+          <div class="step-pane active" data-pane="overview">
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Basic Personal Details</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+              <div class="info-grid">
+                <div class="kv"><span class="k">Gender</span><span class="v">Female</span></div>
+                <div class="kv"><span class="k">Date of Birth</span><span class="v">14 Mar 1999</span></div>
+                <div class="kv"><span class="k">Birth Time</span><span class="v">06:20 AM</span></div>
+                <div class="kv"><span class="k">Height</span><span class="v">5 ft 4 in (163 cm)</span></div>
+                <div class="kv"><span class="k">Blood Group</span><span class="v">B+</span></div>
+                <div class="kv"><span class="k">Complexion</span><span class="v">Fair</span></div>
+                <div class="kv"><span class="k">Manglik</span><span class="v">No</span></div>
+                <div class="kv"><span class="k">Marital Status</span><span class="v">Never Married</span></div>
+                <div class="kv"><span class="k">Has Children</span><span class="v">No</span></div>
+                <div class="kv"><span class="k">Birth Place</span><span class="v">Jaipur, Rajasthan</span></div>
+                <div class="kv"><span class="k">Current Location</span><span class="v">Pune, Maharashtra</span></div>
+                <div class="kv full"><span class="k">Marital Field Details</span><span class="v empty">Not specified</span></div>
+              </div>
+            </div>
+
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Sampraday Details</h3></div>
+              <div class="info-grid">
+                <div class="kv"><span class="k">Caste</span><span class="v">Jain</span></div>
+                <div class="kv"><span class="k">Sampraday</span><span class="v">Digambar</span></div>
+                <div class="kv"><span class="k">Sampraday Details</span><span class="v">Terapanth</span></div>
+                <div class="kv"><span class="k">Self Sakha</span><span class="v">Khandelwal</span></div>
+                <div class="kv"><span class="k">Dadisa Sakha</span><span class="v">Khandelwal</span></div>
+                <div class="kv"><span class="k">Nanisa Sakha</span><span class="v">Golcha</span></div>
+                <div class="kv"><span class="k">Mamasa Sakha</span><span class="v">Golcha</span></div>
+              </div>
+            </div>
+
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Education</h3></div>
+              <div class="info-grid">
+                <div class="kv full"><span class="k">Education</span><span class="v">Post Graduate · M.Des Interaction Design · MIT Institute of Design · Pune · 2021 · Highest</span></div>
+                <div class="kv"><span class="k">Occupation</span><span class="v">Senior UX Designer</span></div>
+                <div class="kv"><span class="k">Company</span><span class="v">Persistent Systems</span></div>
+                <div class="kv"><span class="k">Work Profile</span><span class="v">Product Design</span></div>
+                <div class="kv"><span class="k">Income / Turnover</span><span class="v">₹18,00,000 / year</span></div>
+              </div>
+            </div>
+
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Current Address</h3></div>
+              <div class="info-grid">
+                <div class="kv full"><span class="k">Current Address</span><span class="v">402, Sunrise Residency, Baner Road, Pune, Maharashtra — 411045</span></div>
+              </div>
+            </div>
+
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Verification Status</h3></div>
+              <div class="info-grid">
+                <div class="kv"><span class="k">Referral Source</span><span class="v">Existing Member</span></div>
+                <div class="kv"><span class="k">Referral Name</span><span class="v">Nikhil Chordia (Cousin)</span></div>
+                <div class="kv"><span class="k">Verified At</span><span class="v">02 Jul 2026, 11:20 AM</span></div>
+                <div class="kv"><span class="k">Verified By</span><span class="v">Meera Kothari</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONTACTS -->
+          <div class="step-pane" data-pane="contacts">
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Contact Details</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+              <div class="pd-card-grid">
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Mobile <span class="pd-badge">Primary</span><span class="pd-badge">Verified</span></div>
+                  <div class="info-grid">
+                    <div class="kv"><span class="k">Number</span><span class="v">+91 98•••••210 (masked)</span></div>
+                    <div class="kv"><span class="k">Name</span><span class="v">Priya Chordia</span></div>
+                    <div class="kv"><span class="k">Relation</span><span class="v">Self</span></div>
+                  </div>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Parent Mobile <span class="pd-badge">Verified</span></div>
+                  <div class="info-grid">
+                    <div class="kv"><span class="k">Number</span><span class="v">+91 90•••••881 (masked)</span></div>
+                    <div class="kv"><span class="k">Name</span><span class="v">Suresh Chordia</span></div>
+                    <div class="kv"><span class="k">Relation</span><span class="v">Father</span></div>
+                  </div>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Email</div>
+                  <div class="info-grid">
+                    <div class="kv"><span class="k">Mail ID</span><span class="v">priya.c••••@gmail.com</span></div>
+                    <div class="kv"><span class="k">Name</span><span class="v">Priya Chordia</span></div>
+                    <div class="kv"><span class="k">Relation</span><span class="v">Self</span></div>
+                  </div>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">WhatsApp</div>
+                  <div class="info-grid">
+                    <div class="kv"><span class="k">Number</span><span class="v">+91 98•••••210 (masked)</span></div>
+                    <div class="kv"><span class="k">Relation</span><span class="v">Self</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EDUCATION & CAREER -->
+          <div class="step-pane" data-pane="career">
+            <div class="pd-educareer-grid pd-educareer" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+              <div>
+                <div class="pd-sect-head"><h3>Education</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+                <div style="display:flex; flex-direction:column; gap:0.6rem;">
+                  <div class="pd-subcard">
+                    <div class="pd-subcard-title">Post Graduate <span class="pd-badge">Highest Degree</span></div>
+                    <div class="pd-subcard-sub">M.Des Interaction Design</div>
+                    <div class="info-grid">
+                      <div class="kv"><span class="k">Institution</span><span class="v">MIT Institute of Design</span></div>
+                      <div class="kv"><span class="k">Location</span><span class="v">Pune</span></div>
+                      <div class="kv"><span class="k">Passing Year</span><span class="v">2021</span></div>
+                    </div>
+                  </div>
+                  <div class="pd-subcard">
+                    <div class="pd-subcard-title">Graduate</div>
+                    <div class="pd-subcard-sub">B.Des Product Design</div>
+                    <div class="info-grid">
+                      <div class="kv"><span class="k">Institution</span><span class="v">NID Ahmedabad</span></div>
+                      <div class="kv"><span class="k">Location</span><span class="v">Ahmedabad</span></div>
+                      <div class="kv"><span class="k">Passing Year</span><span class="v">2019</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="pd-sect-head"><h3>Career</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+                <div style="display:flex; flex-direction:column; gap:0.6rem;">
+                  <div class="pd-subcard">
+                    <div class="pd-subcard-title">Private Job <span class="pd-badge">Primary</span></div>
+                    <div class="pd-subcard-sub">Senior UX Designer</div>
+                    <div class="info-grid">
+                      <div class="kv"><span class="k">Company</span><span class="v">Persistent Systems</span></div>
+                      <div class="kv"><span class="k">Work Profile</span><span class="v">Product Design</span></div>
+                      <div class="kv"><span class="k">Income / Turnover</span><span class="v">₹18,00,000 / year</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="pd-sect-head"><h3>Office Address</h3></div>
+                <div class="pd-subcard">
+                  <div class="info-grid" style="grid-template-columns:1fr;">
+                    <div class="kv"><span class="k">Office Address</span><span class="v">Persistent Systems, Hinjawadi Phase 1, Pune, Maharashtra — 411057</span></div>
+                    <div class="kv"><span class="k">Visa</span><span class="v empty">Not applicable</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pd-sect" style="margin-top:1.1rem;">
+              <div class="pd-sect-head"><h3>Other Info</h3></div>
+              <div class="info-grid">
+                <div class="kv"><span class="k">Annual Income</span><span class="v">₹18,00,000</span></div>
+                <div class="kv"><span class="k">Family Status</span><span class="v">Upper Middle Class</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FAMILY -->
+          <div class="step-pane" data-pane="family">
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Family</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+              <div class="pd-card-grid">
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Father</div>
+                  <div class="pd-subcard-sub">Suresh Chordia (Pune)</div>
+                  <div class="info-grid" style="grid-template-columns:1fr;">
+                    <div class="kv"><span class="k">Occupation</span><span class="v">Business</span></div>
+                    <div class="kv"><span class="k">Occupation Details</span><span class="v">Textile Wholesale</span></div>
+                    <div class="kv"><span class="k">Phone</span><span class="v">+91 90•••••881</span></div>
+                  </div>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Mother</div>
+                  <div class="pd-subcard-sub">Kavita Chordia (Pune)</div>
+                  <div class="info-grid" style="grid-template-columns:1fr;">
+                    <div class="kv"><span class="k">Occupation</span><span class="v">Homemaker</span></div>
+                  </div>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Brother 1</div>
+                  <div class="pd-subcard-sub">Nikhil Chordia (Pune)</div>
+                  <div class="info-grid" style="grid-template-columns:1fr;">
+                    <div class="kv"><span class="k">Occupation</span><span class="v">Chartered Accountant</span></div>
+                    <div class="kv"><span class="k">Marital Status</span><span class="v">Married</span></div>
+                    <div class="kv"><span class="k">Partner Name</span><span class="v">Ritu Chordia</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Future Prospects (1)</h3></div>
+              <div class="pd-card-grid">
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Sister</div>
+                  <div class="pd-subcard-sub">Anushka Chordia</div>
+                  <div class="info-grid" style="grid-template-columns:1fr;">
+                    <div class="kv"><span class="k">Gender</span><span class="v">Female</span></div>
+                    <div class="kv"><span class="k">Eligible Year</span><span class="v">2028</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RELATIVES -->
+          <div class="step-pane" data-pane="relatives">
+            <div class="pd-sect-head" style="margin-bottom:0.9rem;"><h3 style="font-size:0.83rem;">Relatives</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.1rem;">
+              <div>
+                <h3 style="font-size:0.78rem; margin: 0 0 0.6rem;">Maternal Relatives</h3>
+                <div style="display:flex; flex-direction:column; gap:0.6rem;">
+                  <div class="pd-subcard">
+                    <div class="pd-subcard-title">Maternal Uncle</div>
+                    <div class="pd-subcard-sub">Ajay Golcha (Jaipur)</div>
+                    <div class="info-grid" style="grid-template-columns:1fr;">
+                      <div class="kv"><span class="k">Occupation</span><span class="v">Jewellery Business</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 style="font-size:0.78rem; margin: 0 0 0.6rem;">Paternal Relatives</h3>
+                <div style="display:flex; flex-direction:column; gap:0.6rem;">
+                  <div class="pd-subcard">
+                    <div class="pd-subcard-title">Paternal Uncle</div>
+                    <div class="pd-subcard-sub">Ramesh Chordia (Pune)</div>
+                    <div class="info-grid" style="grid-template-columns:1fr;">
+                      <div class="kv"><span class="k">Occupation</span><span class="v">Retired Bank Manager</span></div>
+                    </div>
+                  </div>
+                  <div class="pd-subcard">
+                    <div class="pd-subcard-title">Cousin</div>
+                    <div class="pd-subcard-sub">Nikhil Chordia (Pune)</div>
+                    <div class="info-grid" style="grid-template-columns:1fr;">
+                      <div class="kv"><span class="k">Occupation</span><span class="v">Software Engineer</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ADDRESSES -->
+          <div class="step-pane" data-pane="addresses">
+            <div class="pd-sect-head" style="margin-bottom:0.9rem;"><h3 style="font-size:0.83rem;">Addresses</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+            <div class="pd-card-grid">
+              <div class="pd-subcard">
+                <div class="info-grid" style="grid-template-columns:1fr;">
+                  <div class="kv"><span class="k">Current Address</span><span class="v">402, Sunrise Residency, Baner Road, Pune, Maharashtra — 411045</span></div>
+                  <div class="kv"><span class="k">Visa</span><span class="v empty">Not applicable</span></div>
+                </div>
+              </div>
+              <div class="pd-subcard">
+                <div class="info-grid" style="grid-template-columns:1fr;">
+                  <div class="kv"><span class="k">Permanent Address</span><span class="v">B-14, Shanti Nagar, Malviya Nagar, Jaipur, Rajasthan — 302017</span></div>
+                  <div class="kv"><span class="k">Visa</span><span class="v empty">Not applicable</span></div>
+                </div>
+              </div>
+              <div class="pd-subcard">
+                <div class="info-grid" style="grid-template-columns:1fr;">
+                  <div class="kv"><span class="k">Native Address</span><span class="v">Chordia House, Sardar Bazar, Bikaner, Rajasthan — 334001</span></div>
+                  <div class="kv"><span class="k">Visa</span><span class="v empty">Not applicable</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREFERENCES -->
+          <div class="step-pane" data-pane="preferences">
+            <div class="pd-sect-head" style="margin-bottom:0.9rem;"><h3 style="font-size:0.83rem;">Preferences</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+            <div class="info-grid">
+              <div class="kv"><span class="k">Preferred Age Difference</span><span class="v">28 – 33 years</span></div>
+              <div class="kv"><span class="k">Preferred Occupation Types</span><span class="v">Private Job, Business, Govt Job</span></div>
+              <div class="kv"><span class="k">Non Preferred Occupation Types</span><span class="v">Not Working</span></div>
+              <div class="kv"><span class="k">Preferred Cities</span><span class="v">Pune, Mumbai, Bengaluru</span></div>
+              <div class="kv"><span class="k">Non Preferred Cities</span><span class="v empty">None specified</span></div>
+              <div class="kv"><span class="k">Preferred Castes</span><span class="v">Jain</span></div>
+              <div class="kv"><span class="k">Non Preferred Sakhas</span><span class="v empty">None specified</span></div>
+              <div class="kv"><span class="k">Preferred Education Categories</span><span class="v">Post Graduate, Professional Degree</span></div>
+              <div class="kv"><span class="k">Non Preferred Education Categories</span><span class="v empty">None specified</span></div>
+              <div class="kv"><span class="k">Preferred Degrees</span><span class="v">MBA, CA, M.Tech</span></div>
+              <div class="kv"><span class="k">Non Preferred Degrees</span><span class="v empty">None specified</span></div>
+              <div class="kv full"><span class="k">Notes</span><span class="v">Open to relocation within India; horoscope match preferred but not mandatory.</span></div>
+            </div>
+          </div>
+
+          <!-- MEDIA & DOCUMENTS -->
+          <div class="step-pane" data-pane="media">
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Photos</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+              <div class="pd-gallery">
+                <div class="pd-gallery-item"><span class="ph-fallback">🖼</span><span class="pd-gallery-badge primary">★ Primary</span></div>
+                <div class="pd-gallery-item"><span class="ph-fallback">🖼</span><span class="pd-gallery-badge">View Photo</span></div>
+                <div class="pd-gallery-item"><span class="ph-fallback">🖼</span><span class="pd-gallery-badge">View Photo</span></div>
+                <div class="pd-gallery-item"><span class="ph-fallback">🖼</span><span class="pd-gallery-badge">View Photo</span></div>
+              </div>
+            </div>
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Media Links</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+              <div class="pd-card-grid">
+                <div class="pd-subcard" style="flex-direction:row; align-items:center; justify-content:space-between;">
+                  <span class="pd-subcard-title">Instagram</span>
+                  <button class="pd-link-btn ghost" type="button">Open link ↗</button>
+                </div>
+                <div class="pd-subcard" style="flex-direction:row; align-items:center; justify-content:space-between;">
+                  <span class="pd-subcard-title">LinkedIn</span>
+                  <button class="pd-link-btn ghost" type="button">Open link ↗</button>
+                </div>
+              </div>
+            </div>
+            <div class="pd-sect">
+              <div class="pd-sect-head"><h3>Documents &amp; Generated Media</h3><button class="pd-edit-btn" type="button">Edit</button></div>
+              <div class="pd-card-grid">
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Aadhaar Card <span class="pd-badge">Primary</span></div>
+                  <div class="pd-subcard-sub">aadhaar_priya.pdf · application/pdf · 1.2 MB</div>
+                  <div class="pd-subcard-actions">
+                    <button class="pd-link-btn" type="button">Open file</button>
+                    <button class="pd-link-btn ghost" type="button">Download PDF</button>
+                  </div>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Biodata PDF</div>
+                  <div class="pd-subcard-sub">Version 3 · Generated 12 Aug 2026 · Watermarked</div>
+                  <div class="pd-subcard-actions">
+                    <button class="pd-link-btn" type="button">Open file</button>
+                    <button class="pd-link-btn ghost" type="button">Download watermarked</button>
+                  </div>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Horoscope</div>
+                  <div class="pd-subcard-sub">horoscope_priya.jpg · image/jpeg · 640 KB</div>
+                  <div class="pd-subcard-actions">
+                    <button class="pd-link-btn" type="button">Open file</button>
+                    <button class="pd-link-btn ghost" type="button">Download file</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECOMMENDATIONS -->
+          <div class="step-pane" data-pane="recommendations">
+            <div class="rec-metric-row">
+              <div class="rec-metric-tile"><strong>14</strong><span>Recommended</span></div>
+              <div class="rec-metric-tile"><strong>2</strong><span>Not Suitable</span></div>
+              <div class="rec-metric-tile"><strong>6</strong><span>Shared</span></div>
+              <div class="rec-metric-tile"><strong>4</strong><span>Intrested</span></div>
+              <div class="rec-metric-tile"><strong>1</strong><span>Rejected</span></div>
+              <div class="rec-metric-tile"><strong>2</strong><span>Meeting Done</span></div>
+              <div class="rec-metric-tile"><strong>3</strong><span>Pending</span></div>
+            </div>
+
+            <div class="rec-subtabs" id="recSubtabs">
+              <button type="button" class="active" data-recsub="add">Add Recommendation</button>
+              <button type="button" data-recsub="view">View Recommendations</button>
+            </div>
+
+            <div class="rec-pane active" data-recpane="add">
+              <div class="filter-bar" style="margin-bottom:0.75rem;">
+                <input class="form-input" style="max-width:280px;" type="text" placeholder="Search by name or profile #…" />
+                <button class="btn-ghost" type="button">Search</button>
+              </div>
+              <div class="pd-card-grid">
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Rohan Mehta <span class="pd-badge">JKM-10917</span></div>
+                  <div class="pd-subcard-sub">29 yrs · Mumbai · Chartered Accountant</div>
+                  <textarea class="form-input" rows="2" placeholder="Add a note for this recommendation…"></textarea>
+                </div>
+                <div class="pd-subcard">
+                  <div class="pd-subcard-title">Aniket Surana <span class="pd-badge">JKM-11042</span></div>
+                  <div class="pd-subcard-sub">30 yrs · Bengaluru · Product Manager</div>
+                  <textarea class="form-input" rows="2" placeholder="Add a note for this recommendation…"></textarea>
+                </div>
+              </div>
+              <div style="margin-top:0.85rem; display:flex; justify-content:flex-end;">
+                <button class="btn-primary" type="button">Send Recommendation (2 selected)</button>
+              </div>
+            </div>
+
+            <div class="rec-pane" data-recpane="view">
+              <div class="filter-bar" style="margin-bottom:0.9rem;">
+                <select class="city-select" style="width:auto;">
+                  <option>All Actors</option>
+                  <option>Meera Kothari</option>
+                  <option>Sanjay Doshi</option>
+                </select>
+                <select class="city-select" style="width:auto;">
+                  <option>All Statuses</option>
+                  <option>Recommended</option>
+                  <option>Shared</option>
+                  <option>Interested</option>
+                  <option>Rejected</option>
+                  <option>Meeting Done</option>
+                  <option>Pending</option>
+                </select>
+              </div>
+              <div class="table-card">
+                <div class="table-scroll">
+                  <table class="dtable">
+                    <thead>
+                      <tr>
+                        <th>Profile</th>
+                        <th>Recommended By</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Outcome</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>Rohan Mehta</strong><br /><span style="color:var(--ink-faint); font-size:0.68rem;">JKM-10917</span></td>
+                        <td>Meera Kothari</td>
+                        <td>03 Aug 2026</td>
+                        <td><span class="pill contacted">Shared</span></td>
+                        <td>Will visit office</td>
+                        <td><button class="pd-link-btn ghost" type="button">Biodata</button></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Aniket Surana</strong><br /><span style="color:var(--ink-faint); font-size:0.68rem;">JKM-11042</span></td>
+                        <td>Sanjay Doshi</td>
+                        <td>28 Jul 2026</td>
+                        <td><span class="pill shortlisted">Pending</span></td>
+                        <td>—</td>
+                        <td><button class="pd-link-btn ghost" type="button">Biodata</button></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Kartik Jain</strong><br /><span style="color:var(--ink-faint); font-size:0.68rem;">JKM-10653</span></td>
+                        <td>Meera Kothari</td>
+                        <td>19 Jul 2026</td>
+                        <td><span class="pill contacted">Meeting Done</span></td>
+                        <td>Engaged/Married</td>
+                        <td><button class="pd-link-btn ghost" type="button">Biodata</button></td>
+                      </tr>
+                      <tr>
+                        <td><strong>Yash Bafna</strong><br /><span style="color:var(--ink-faint); font-size:0.68rem;">JKM-09880</span></td>
+                        <td>Sanjay Doshi</td>
+                        <td>02 Jul 2026</td>
+                        <td><span class="pill pending">Not Suitable</span></td>
+                        <td>Not Interested</td>
+                        <td><button class="pd-link-btn ghost" type="button">Biodata</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="table-foot">
+                  <span>Showing 4 of 14 recommendations</span>
+                  <span>Page 1 of 4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN NOTES SIDE PANEL -->
+        <div class="pd-notes">
+          <div class="pd-notes-head">
+            <h3>Admin Notes</h3>
+            <div class="pd-note-stats">
+              <div class="pd-note-stat"><strong>9</strong><span>Calls</span></div>
+              <div class="pd-note-stat"><strong>2</strong><span>Visited Office</span></div>
+              <div class="pd-note-stat"><strong>1</strong><span>Visited Home</span></div>
+              <div class="pd-note-stat"><strong>3</strong><span>Due Follow-ups</span></div>
+            </div>
+          </div>
+          <div class="pd-note-filters">
+            <select>
+              <option>All Types</option>
+              <option>Call</option>
+              <option>Visited In Office</option>
+              <option>Visited Walk-in</option>
+              <option>Other</option>
+            </select>
+            <select>
+              <option>All Outcomes</option>
+              <option>Interested</option>
+              <option>Will visit office</option>
+              <option>Not Interested</option>
+              <option>Call back</option>
+            </select>
+            <select>
+              <option>All Follow-ups</option>
+              <option>Pending</option>
+              <option>Scheduled</option>
+              <option>Completed</option>
+            </select>
+            <select>
+              <option>All Added By</option>
+              <option>Meera Kothari</option>
+              <option>Sanjay Doshi</option>
+            </select>
+          </div>
+          <div class="pd-note-list">
+            <div class="pd-note-bubble">
+              <div class="pd-note-top"><span class="pd-note-type">Call</span><span class="pd-note-time">Today, 10:42 AM</span></div>
+              <p class="pd-note-text">Spoke with the candidate; she's open to profiles in Mumbai and Bengaluru as well. Wants horoscope match if possible.</p>
+              <div class="pd-note-foot"><span class="pd-note-outcome">Interested</span><span class="pd-note-author">Meera Kothari</span></div>
+            </div>
+            <div class="pd-note-bubble">
+              <div class="pd-note-top"><span class="pd-note-type">Visited In Office</span><span class="pd-note-time">Yesterday, 4:15 PM</span></div>
+              <p class="pd-note-text">Family visited office with biodata and horoscope. Discussed package upgrade to Premium+.</p>
+              <div class="pd-note-foot"><span class="pd-note-outcome">Shared Fees structure</span><span class="pd-note-author">Sanjay Doshi</span></div>
+            </div>
+            <div class="pd-note-bubble">
+              <div class="pd-note-top"><span class="pd-note-type">Call</span><span class="pd-note-time">12 Aug 2026</span></div>
+              <p class="pd-note-text">Follow-up call regarding Rohan Mehta's recommendation. Awaiting family discussion before next steps.</p>
+              <div class="pd-note-foot"><span class="pd-note-outcome">Call back</span><span class="pd-note-author">Meera Kothari</span></div>
+            </div>
+          </div>
+          <div class="pd-note-composer">
+            <textarea placeholder="Add a note about this call or visit…"></textarea>
+            <div class="pd-note-composer-row">
+              <select>
+                <option>Call</option>
+                <option>Visited In Office</option>
+                <option>Visited Walk-in</option>
+                <option>Other</option>
+              </select>
+              <select>
+                <option>Outcome…</option>
+                <option>Interested</option>
+                <option>Will visit office</option>
+                <option>Shared PS details</option>
+                <option>Not Interested</option>
+                <option>Call back</option>
+              </select>
+            </div>
+            <div class="pd-note-composer-row">
+              <input type="date" />
+              <button class="btn-primary" type="button">Add Note</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+
+// Profile tabs
+var pdTabbar = document.getElementById('pdTabbar');
+if (pdTabbar) {
+  pdTabbar.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-tab]');
+    if (!btn) return;
+    var tabId = btn.getAttribute('data-tab');
+    pdTabbar.querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.step-pane[data-pane]').forEach(function (pane) {
+      pane.classList.toggle('active', pane.getAttribute('data-pane') === tabId);
+    });
+  });
+}
+
+// Recommendations sub-tabs
+var recSubtabs = document.getElementById('recSubtabs');
+if (recSubtabs) {
+  recSubtabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-recsub]');
+    if (!btn) return;
+    var id = btn.getAttribute('data-recsub');
+    recSubtabs.querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.rec-pane[data-recpane]').forEach(function (pane) {
+      pane.classList.toggle('active', pane.getAttribute('data-recpane') === id);
+    });
+  });
+}
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

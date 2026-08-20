@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Content head -->
+<title>Create Profile · Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  .cp-hero { padding: 1.1rem 1.3rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .cp-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .cp-hero-top h2 { margin: 0; font-size: 1.02rem; font-weight: 700; letter-spacing: -0.008em; }
+  .cp-hero-top .sub { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--ink-soft); }
+  .cp-progress-text { font-size: 0.71rem; color: var(--ink-faint); display: flex; justify-content: space-between; }
+
+  .step-nav { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.15rem 0; }
+  .step-nav-btn {
+    display: flex; align-items: center; gap: 0.45rem; padding: 0.4rem 0.65rem 0.4rem 0.4rem;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--surface-solid);
+    cursor: pointer; font-family: inherit; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .step-nav-btn:hover { border-color: var(--ink-faint); }
+  .step-nav-btn .num {
+    width: 19px; height: 19px; border-radius: 50%; background: var(--track); color: var(--ink-faint);
+    font-size: 0.63rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .step-nav-btn .lbl { font-size: 0.73rem; font-weight: 650; color: var(--ink-soft); white-space: nowrap; }
+  .step-nav-btn.active { border-color: var(--accent); background: var(--accent-wash); }
+  .step-nav-btn.active .num { background: var(--accent); color: var(--accent-ink); }
+  .step-nav-btn.active .lbl { color: var(--accent); }
+  .step-nav-btn.done .num { background: var(--success); color: #fff; }
+  .step-nav-btn.done .lbl { color: var(--ink); }
+
+  .step-pane2 { display: none; }
+  .step-pane2.active { display: flex; flex-direction: column; gap: 1rem; animation: viewIn 0.28s cubic-bezier(.2,.8,.2,1); }
+  .pane-title2 { margin: 0 0 -0.35rem; font-size: 0.88rem; font-weight: 700; letter-spacing: -0.005em; text-align: center; }
+
+  .sub-card { background: var(--track); border: 1px solid var(--border); border-radius: 9px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+  .sub-card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .sub-card-head h4 { margin: 0; font-size: 0.78rem; font-weight: 700; }
+  .add-chip-btn { border: 1px dashed var(--border); background: none; color: var(--accent); font-size: 0.68rem; font-weight: 700; border-radius: 6px; padding: 0.28rem 0.6rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .add-chip-btn:hover { background: var(--accent-wash); }
+
+  .item-card { background: var(--surface-solid); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 0.9rem; display: flex; flex-direction: column; gap: 0.65rem; }
+  .item-card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .item-card-head b { font-size: 0.79rem; }
+  .item-card-head .tagsm { font-size: 0.63rem; padding: 0.14rem 0.42rem; border-radius: 5px; background: var(--info-wash); color: var(--info); font-weight: 700; }
+  .item-card-head .rm2 { border: none; background: none; color: var(--ink-faint); cursor: pointer; font-size: 0.78rem; }
+  .item-card-head .rm2:hover { color: var(--exclude); }
+  .mini-field-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem 0.75rem; }
+  .mini-field-grid.c3 { grid-template-columns: repeat(3, 1fr); }
+  .mini-field-grid .span2 { grid-column: span 2; }
+  @media (max-width: 900px) { .mini-field-grid, .mini-field-grid.c3 { grid-template-columns: repeat(2, 1fr); } }
+
+  .photo-grid { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+  .photo-tile { width: 74px; height: 74px; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.85rem; position: relative; flex: none; }
+  .photo-tile .rm { position: absolute; top: -5px; right: -5px; width: 17px; height: 17px; border-radius: 50%; background: var(--exclude); color: #fff; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid var(--surface-solid); }
+  .photo-add { width: 74px; height: 74px; border-radius: 9px; flex: none; }
+
+  .tag-chip-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.55rem 0.28rem 0.65rem; border-radius: 999px; background: var(--accent-wash); color: var(--accent); font-size: 0.71rem; font-weight: 700; }
+  .tag-chip button { border: none; background: none; color: inherit; cursor: pointer; font-size: 0.75rem; line-height: 1; padding: 0; }
+
+  .dup-inline-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.65rem; }
+  @media (max-width: 1000px) { .dup-inline-grid { grid-template-columns: repeat(3, 1fr); } }
+  .phonetic-badge { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; flex: none; }
+  .phonetic-badge span { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 700; }
+  .phonetic-badge b { font-family: ui-monospace, "SF Mono", monospace; font-size: 0.85rem; }
+  .dup-action-row { display: flex; align-items: center; gap: 0.75rem; padding-top: 0.2rem; }
+
+  .resolve-eyebrow { margin: 0 0 0.15rem; font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
+  .resolve-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .resolve-hero h3 { margin: 0 0 0.3rem; font-size: 0.92rem; font-weight: 700; }
+  .resolve-hero p { margin: 0; font-size: 0.75rem; color: var(--ink-soft); max-width: 520px; line-height: 1.5; }
+  .score-bubble { flex: none; display: flex; flex-direction: column; align-items: center; padding: 0.55rem 0.9rem; border-radius: 10px; background: var(--accent); color: var(--accent-ink); }
+  .score-bubble b { font-size: 1.05rem; line-height: 1; }
+  .score-bubble span { font-size: 0.62rem; font-weight: 700; opacity: 0.9; }
+
+  .match-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .match-card { border: 1px solid var(--border); border-radius: 9px; padding: 0.75rem 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; background: var(--surface-solid); cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; text-align: left; width: 100%; font-family: inherit; }
+  .match-card:hover { border-color: var(--ink-faint); }
+  .match-card.active { border-color: var(--accent); background: var(--accent-wash); }
+  .match-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+  .match-name { font-size: 0.82rem; font-weight: 700; }
+  .match-meta { display: block; font-size: 0.68rem; color: var(--ink-faint); margin-top: 0.15rem; }
+  .match-actions { display: flex; align-items: center; gap: 0.6rem; flex: none; }
+  .view-profile-btn { border: 1px solid var(--border); background: var(--surface-solid); color: var(--ink-soft); font-size: 0.66rem; font-weight: 650; border-radius: 6px; padding: 0.25rem 0.55rem; cursor: pointer; font-family: inherit; }
+  .match-score { font-size: 0.88rem; font-weight: 700; color: var(--accent); }
+  .match-loc { font-size: 0.72rem; color: var(--ink-soft); }
+  .reason-chip-wrap { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .reason-chip { font-size: 0.63rem; font-weight: 650; background: var(--track); color: var(--ink-soft); border-radius: 5px; padding: 0.15rem 0.45rem; }
+
+  .action-panel { display: flex; flex-direction: column; gap: 0.75rem; }
+  .action-panel-head { display: flex; align-items: center; justify-content: space-between; }
+  .target-chip { font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; background: var(--success-wash); color: var(--success); }
+  .action-card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+  @media (max-width: 900px) { .action-card-grid { grid-template-columns: 1fr; } }
+  .action-card { border: 1px solid var(--border); border-radius: 9px; padding: 0.75rem 0.85rem; background: var(--surface-solid); cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; text-align: left; font-family: inherit; }
+  .action-card.active { border-color: var(--accent); background: var(--accent-wash); }
+  .action-card .badge2 { align-self: flex-start; font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 5px; background: var(--track); color: var(--ink-faint); }
+  .action-card.active .badge2 { background: var(--accent); color: var(--accent-ink); }
+  .action-card b { font-size: 0.78rem; }
+  .action-card p { margin: 0; font-size: 0.68rem; color: var(--ink-faint); line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item active" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">Create Profile<small>Core</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+
+      <div class="page-head">
+        <div>
+          <h1>Create Profile</h1>
+          <p class="sub">Nine-step guided intake — duplicate screening, profile basics, personal and career details, family, relatives, partner preferences, and media uploads.</p>
+        </div>
+        <div class="page-head-actions">
+          <span class="pill pending" id="stepPill">Step 2 of 9 · Profile Basics</span>
+          <button class="btn-ghost" type="button">Save Draft</button>
+        </div>
+      </div>
+
+      <div class="glass-card cp-hero">
+        <div class="cp-hero-top">
+          <div>
+            <h2>Create New Profile</h2>
+            <p class="sub">Naman Sunil Doshi — duplicate check cleared, profile #M18562 created.</p>
+          </div>
+          <span class="pill contacted">Profile #M18562</span>
+        </div>
+        <div class="stepper">
+          <div class="track"><div class="fill" id="progressFill" style="width:22%"></div></div>
+        </div>
+        <div class="cp-progress-text">
+          <span id="progressLabel">Profile Basics · Step 2 of 9</span>
+          <span id="progressPct">22%</span>
+        </div>
+        <div class="step-nav" id="stepNav">
+          <button type="button" class="step-nav-btn done" data-step="0"><span class="num">✓</span><span class="lbl">Duplicate</span></button>
+          <button type="button" class="step-nav-btn active" data-step="1"><span class="num">02</span><span class="lbl">Basics</span></button>
+          <button type="button" class="step-nav-btn" data-step="2"><span class="num">03</span><span class="lbl">Personal</span></button>
+          <button type="button" class="step-nav-btn" data-step="3"><span class="num">04</span><span class="lbl">Career</span></button>
+          <button type="button" class="step-nav-btn" data-step="4"><span class="num">05</span><span class="lbl">Address</span></button>
+          <button type="button" class="step-nav-btn" data-step="5"><span class="num">06</span><span class="lbl">Family</span></button>
+          <button type="button" class="step-nav-btn" data-step="6"><span class="num">07</span><span class="lbl">Relatives</span></button>
+          <button type="button" class="step-nav-btn" data-step="7"><span class="num">08</span><span class="lbl">Preferences</span></button>
+          <button type="button" class="step-nav-btn" data-step="8"><span class="num">09</span><span class="lbl">Media</span></button>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding:1.3rem 1.4rem;">
+
+        <!-- STEP 0: Duplicate Check -->
+        <div class="step-pane2" data-pane="0">
+          <h3 class="pane-title2">Check duplicate before opening the full profile flow</h3>
+          <div class="sub-card" style="background:none;padding:0;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+              <div class="dup-inline-grid" style="flex:1;min-width:280px;">
+                <div class="form-field"><label>Gender *</label><select class="form-input"><option>Male</option><option>Female</option></select></div>
+                <div class="form-field"><label>Date of Birth *</label><input class="form-input" type="date" value="1996-04-12"></div>
+                <div class="form-field"><label>Birth Time</label><input class="form-input" value="10:45 AM"></div>
+                <div class="form-field"><label>First Name *</label><input class="form-input" value="Naman"></div>
+                <div class="form-field"><label>Middle Name *</label><input class="form-input" value="Sunil"></div>
+                <div class="form-field"><label>Last Name *</label><input class="form-input" value="Doshi"></div>
+              </div>
+              <div class="phonetic-badge">
+                <span>Phonetic Key</span>
+                <b>NMN-SNL-DS</b>
+              </div>
+            </div>
+            <div class="dup-action-row">
+              <button class="btn-primary" type="button">Run Duplicate Check</button>
+              <span style="font-size:0.72rem;color:var(--ink-faint);">2 duplicate candidate(s) found</span>
+            </div>
+          </div>
+
+          <div class="sub-card">
+            <div class="resolve-hero">
+              <div>
+                <p class="resolve-eyebrow">Duplicate Case Found</p>
+                <h3>Duplicate profiles found</h3>
+                <p>Review the matching profiles here before continuing. Choose Retain, Merge, or Replace, then confirm your review.</p>
+              </div>
+              <div class="score-bubble"><b>92%</b><span>TOP MATCH</span></div>
+            </div>
+
+            <div class="match-list">
+              <button type="button" class="match-card active">
+                <div class="match-top">
+                  <div>
+                    <span class="match-name">Naman S. Doshi</span>
+                    <span class="match-meta">Profile #M18420 · Male · DOB 1996-04-12</span>
+                  </div>
+                  <div class="match-actions">
+                    <span class="view-profile-btn">View Profile</span>
+                    <strong class="match-score">92%</strong>
+                  </div>
+                </div>
+                <div class="match-loc">Pune · Maharashtra</div>
+                <div class="reason-chip-wrap">
+                  <span class="reason-chip">Same date of birth</span>
+                  <span class="reason-chip">Phonetic name match</span>
+                  <span class="reason-chip">Same caste &amp; sakha</span>
+                </div>
+              </button>
+              <button type="button" class="match-card">
+                <div class="match-top">
+                  <div>
+                    <span class="match-name">Naman K. Doshi</span>
+                    <span class="match-meta">Profile #M15992 · Male · DOB 1995-11-02</span>
+                  </div>
+                  <div class="match-actions">
+                    <span class="view-profile-btn">View Profile</span>
+                    <strong class="match-score">61%</strong>
+                  </div>
+                </div>
+                <div class="match-loc">Ahmedabad · Gujarat</div>
+                <div class="reason-chip-wrap">
+                  <span class="reason-chip">Similar name</span>
+                  <span class="reason-chip">Same gotra</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="action-panel">
+              <div class="action-panel-head">
+                <p style="margin:0;font-size:0.72rem;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;">Resolution Action</p>
+                <span class="target-chip">Target #M18420</span>
+              </div>
+              <div class="action-card-grid">
+                <div class="action-card">
+                  <span class="badge2">Safe</span>
+                  <b>Retain as New</b>
+                  <p>Create this as a separate active profile. Cases stay pending for admin review.</p>
+                </div>
+                <div class="action-card active">
+                  <span class="badge2">Recommended</span>
+                  <b>Merge with Target</b>
+                  <p>Existing selected profile stays canonical; new profile becomes merged profile.</p>
+                </div>
+                <div class="action-card">
+                  <span class="badge2">Careful</span>
+                  <b>Replace Existing</b>
+                  <p>New profile becomes canonical replacement; selected existing profile is merged.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 1: Profile Basics -->
+        <div class="step-pane2 active" data-pane="1">
+          <h3 class="pane-title2">Profile Basics</h3>
+          <div class="field-grid">
+            <div class="form-field"><label>First Name <span class="req">*</span></label><input class="form-input" value="Naman"></div>
+            <div class="form-field"><label>Middle Name <span class="req">*</span></label><input class="form-input" value="Sunil"></div>
+            <div class="form-field"><label>Last Name <span class="req">*</span></label><input class="form-input" value="Doshi"></div>
+            <div class="form-field"><label>Gender <span class="req">*</span></label><select class="form-input"><option>Male</option><option>Female</option></select></div>
+            <div class="form-field"><label>Date of Birth <span class="req">*</span></label><input class="form-input" type="date" value="1996-04-12"></div>
+            <div class="form-field"><label>Birth Time (Optional)</label><input class="form-input" value="10:45 AM"></div>
+            <div class="form-field span-2"><label>Birth Place Location</label><input class="form-input" value="Pune, Maharashtra, India"></div>
+            <div class="form-field span-2"><label>Caste &amp; Sakha</label><input class="form-input" value="Digambar — Khandelwal — Sakha: Parwar"></div>
+            <div class="form-field"><label>Sampraday</label><select class="form-input"><option>Digambar</option><option>Shwetambar</option></select></div>
+            <div class="form-field"><label>Sampraday Details</label><input class="form-input" value="Terapanth tradition, Pune circle"></div>
+            <div class="form-field"><label>Referral Source</label><select class="form-input"><option>Existing Member Referral</option></select></div>
+            <div class="form-field"><label>Referral Name</label><select class="form-input"><option>Aarav Mehta</option></select></div>
+            <div class="form-field span-2"><label>About Me</label><textarea class="form-input" rows="3">Chartered Accountant based in Pune, enjoys trekking and classical music, looking for a life partner who values family traditions.</textarea></div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Personal Details -->
+        <div class="step-pane2" data-pane="2">
+          <h3 class="pane-title2">Personal Details</h3>
+          <div class="field-grid">
+            <div class="form-field"><label>Marital Status</label><select class="form-input"><option>Never Married</option><option>Divorced</option><option>Widowed</option></select></div>
+            <div class="form-field"><label>Height</label><input class="form-input" value="5'8&quot; (173 cm)"></div>
+            <div class="form-field"><label>Blood Group</label><select class="form-input"><option>B+</option><option>O+</option><option>A+</option></select></div>
+            <div class="form-field"><label>Complexion</label><select class="form-input"><option>Fair</option><option>Wheatish</option></select></div>
+            <div class="form-field"><label>Manglik</label><select class="form-input"><option>No</option><option>Yes</option><option>Anshik</option><option>Do Not Know</option></select></div>
+            <div class="form-field"><label>Disability</label><select class="form-input"><option>No</option><option>Yes</option></select></div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Education & Career -->
+        <div class="step-pane2" data-pane="3">
+          <h3 class="pane-title2">Education &amp; Career</h3>
+          <div class="field-grid">
+            <div class="sub-card">
+              <div class="sub-card-head"><h4>Education</h4><button class="add-chip-btn" type="button">+ Add Education</button></div>
+
+              <div class="item-card">
+                <div class="item-card-head"><b>CA (Chartered Accountant)</b><span class="tagsm">Highest Degree</span></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field"><label>Category</label><input class="form-input" value="Professional"></div>
+                  <div class="form-field"><label>Institution</label><input class="form-input" value="ICAI, Pune Chapter"></div>
+                  <div class="form-field"><label>Passing Year</label><input class="form-input" value="2019"></div>
+                </div>
+              </div>
+              <div class="item-card">
+                <div class="item-card-head"><b>B.Com</b></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field"><label>Category</label><input class="form-input" value="Graduate"></div>
+                  <div class="form-field"><label>Institution</label><input class="form-input" value="Pune University"></div>
+                  <div class="form-field"><label>Passing Year</label><input class="form-input" value="2016"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="sub-card-head"><h4>Occupations</h4><button class="add-chip-btn" type="button">+ Add Occupation</button></div>
+
+              <div class="item-card">
+                <div class="item-card-head"><b>Sanghvi &amp; Associates LLP</b><span class="tagsm">Primary</span></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field"><label>Occupation Type</label><input class="form-input" value="Chartered Accountant / Finance"></div>
+                  <div class="form-field span2"><label>Work Profile</label><input class="form-input" value="Statutory audit and tax advisory for mid-size manufacturing clients"></div>
+                  <div class="form-field"><label>Annual Income</label><input class="form-input" value="₹18,00,000"></div>
+                </div>
+              </div>
+              <div class="item-card">
+                <div class="item-card-head"><b>Doshi Textiles</b></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field"><label>Occupation Type</label><input class="form-input" value="Family Business"></div>
+                  <div class="form-field"><label>Occupation Details</label><input class="form-input" value="Part-time advisor"></div>
+                  <div class="form-field"><label>Annual Turnover</label><input class="form-input" value="₹25,00,000"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Address -->
+        <div class="step-pane2" data-pane="4">
+          <h3 class="pane-title2">Address</h3>
+          <div class="field-grid">
+            <div class="sub-card">
+              <div class="sub-card-head"><h4>Addresses</h4><button class="add-chip-btn" type="button">+ Add Address</button></div>
+              <div class="item-card">
+                <div class="item-card-head"><b>Permanent</b><button class="rm2" type="button">✕</button></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field span2"><label>Address Line</label><input class="form-input" value="402, Shreeji Heights, Kothrud"></div>
+                  <div class="form-field"><label>Pincode</label><input class="form-input" value="411038"></div>
+                </div>
+              </div>
+              <div class="item-card">
+                <div class="item-card-head"><b>Current</b><button class="rm2" type="button">✕</button></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field span2"><label>Address Line</label><input class="form-input" value="B-12, Sunrise Apartments, Baner"></div>
+                  <div class="form-field"><label>Pincode</label><input class="form-input" value="411045"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="sub-card-head"><h4>Contacts</h4><button class="add-chip-btn" type="button">+ Add Contact</button></div>
+              <div class="item-card">
+                <div class="item-card-head"><b>Mobile · +91 98765 43210</b><span class="tagsm">Primary</span></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field"><label>Contact Person</label><input class="form-input" value="Self"></div>
+                  <div class="form-field"><label>Relation</label><input class="form-input" value="Self"></div>
+                  <div class="form-field"><label>Verified</label><select class="form-input"><option>Yes</option><option>No</option></select></div>
+                </div>
+              </div>
+              <div class="item-card">
+                <div class="item-card-head"><b>Email · naman.doshi@example.com</b></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field"><label>Contact Person</label><input class="form-input" value="Self"></div>
+                  <div class="form-field"><label>Relation</label><input class="form-input" value="Self"></div>
+                  <div class="form-field"><label>Verified</label><select class="form-input"><option>Yes</option><option>No</option></select></div>
+                </div>
+              </div>
+              <div class="item-card">
+                <div class="item-card-head"><b>Mobile · +91 98220 11223</b></div>
+                <div class="mini-field-grid c3">
+                  <div class="form-field"><label>Contact Person</label><input class="form-input" value="Sunil Doshi"></div>
+                  <div class="form-field"><label>Relation</label><input class="form-input" value="Father"></div>
+                  <div class="form-field"><label>Verified</label><select class="form-input"><option>No</option><option>Yes</option></select></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5: Family -->
+        <div class="step-pane2" data-pane="5">
+          <h3 class="pane-title2">Family</h3>
+          <div style="display:flex;justify-content:flex-end;"><button class="add-chip-btn" type="button">+ Add Family Member</button></div>
+          <div class="field-grid">
+            <div class="item-card">
+              <div class="item-card-head"><b>Father — Sunil Doshi</b><button class="rm2" type="button">✕</button></div>
+              <div class="mini-field-grid c3">
+                <div class="form-field"><label>Relation Type</label><input class="form-input" value="Father"></div>
+                <div class="form-field"><label>Marital Status</label><input class="form-input" value="Married"></div>
+                <div class="form-field"><label>Is Deceased?</label><select class="form-input"><option>No</option><option>Yes</option></select></div>
+                <div class="form-field span2"><label>Occupation</label><input class="form-input" value="Retired Bank Manager"></div>
+                <div class="form-field"><label>Location</label><input class="form-input" value="Pune, Maharashtra"></div>
+              </div>
+            </div>
+            <div class="item-card">
+              <div class="item-card-head"><b>Mother — Kavita Doshi</b><button class="rm2" type="button">✕</button></div>
+              <div class="mini-field-grid c3">
+                <div class="form-field"><label>Relation Type</label><input class="form-input" value="Mother"></div>
+                <div class="form-field"><label>Marital Status</label><input class="form-input" value="Married"></div>
+                <div class="form-field"><label>Is Deceased?</label><select class="form-input"><option>No</option><option>Yes</option></select></div>
+                <div class="form-field span2"><label>Occupation</label><input class="form-input" value="Homemaker"></div>
+                <div class="form-field"><label>Location</label><input class="form-input" value="Pune, Maharashtra"></div>
+              </div>
+            </div>
+            <div class="item-card">
+              <div class="item-card-head"><b>Sister — Priya Doshi</b><button class="rm2" type="button">✕</button></div>
+              <div class="mini-field-grid c3">
+                <div class="form-field"><label>Relation Type</label><input class="form-input" value="Sister"></div>
+                <div class="form-field"><label>Marital Status</label><input class="form-input" value="Married"></div>
+                <div class="form-field"><label>Partner Name</label><input class="form-input" value="Rahul Jain"></div>
+                <div class="form-field"><label>Future Prospect</label><select class="form-input"><option>No</option><option>Yes</option></select></div>
+                <div class="form-field span2"><label>Occupation</label><input class="form-input" value="Software Engineer, Infosys"></div>
+                <div class="form-field"><label>Location</label><input class="form-input" value="Bengaluru, Karnataka"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 6: Relatives -->
+        <div class="step-pane2" data-pane="6">
+          <h3 class="pane-title2">Relatives</h3>
+          <div style="display:flex;justify-content:flex-end;"><button class="add-chip-btn" type="button">+ Add Relative</button></div>
+          <div class="field-grid">
+            <div class="item-card">
+              <div class="item-card-head"><b>Paternal Uncle — Rajesh Doshi</b><button class="rm2" type="button">✕</button></div>
+              <div class="mini-field-grid c3">
+                <div class="form-field"><label>Family Side</label><input class="form-input" value="Paternal"></div>
+                <div class="form-field"><label>Contact</label><input class="form-input" value="+91 98230 55667"></div>
+                <div class="form-field"><label>Place</label><input class="form-input" value="Pune"></div>
+                <div class="form-field span2"><label>Occupation</label><input class="form-input" value="Businessman — Textiles"></div>
+                <div class="form-field"><label>Is Deceased?</label><select class="form-input"><option>No</option><option>Yes</option></select></div>
+              </div>
+            </div>
+            <div class="item-card">
+              <div class="item-card-head"><b>Maternal Aunt — Sunita Shah</b><button class="rm2" type="button">✕</button></div>
+              <div class="mini-field-grid c3">
+                <div class="form-field"><label>Family Side</label><input class="form-input" value="Maternal"></div>
+                <div class="form-field"><label>Contact</label><input class="form-input" value="+91 90210 44556"></div>
+                <div class="form-field"><label>Place</label><input class="form-input" value="Indore, Madhya Pradesh"></div>
+              </div>
+            </div>
+            <div class="item-card">
+              <div class="item-card-head"><b>Cousin — Kunal Doshi</b><span class="tagsm">Future Prospect</span></div>
+              <div class="mini-field-grid c3">
+                <div class="form-field"><label>Family Side</label><input class="form-input" value="Paternal"></div>
+                <div class="form-field"><label>Marital Status</label><input class="form-input" value="Unmarried"></div>
+                <div class="form-field"><label>Eligible Year</label><input class="form-input" value="2027"></div>
+                <div class="form-field span2"><label>Occupation</label><input class="form-input" value="MBA Student, IIM Ahmedabad"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 7: Preferences -->
+        <div class="step-pane2" data-pane="7">
+          <h3 class="pane-title2">Partner Preferences</h3>
+          <div class="field-grid">
+            <div class="form-field span-2">
+              <label>Preferred Age Difference</label>
+              <div style="display:flex;gap:0.6rem;">
+                <input class="form-input" value="- 2 Years">
+                <input class="form-input" value="+ 5 Years">
+              </div>
+            </div>
+            <div class="form-field"><label>Preferred Cities</label>
+              <div class="tag-chip-wrap"><span class="tag-chip">Pune</span><span class="tag-chip">Mumbai</span><span class="tag-chip">Ahmedabad</span><span class="tag-chip">Surat</span></div>
+            </div>
+            <div class="form-field"><label>Non Preferred Cities</label>
+              <div class="tag-chip-wrap"><span class="tag-chip">Delhi NCR</span></div>
+            </div>
+            <div class="form-field"><label>Preferred Education Categories</label>
+              <div class="tag-chip-wrap"><span class="tag-chip">Professional</span><span class="tag-chip">Postgraduate</span></div>
+            </div>
+            <div class="form-field"><label>Preferred Degrees</label>
+              <div class="tag-chip-wrap"><span class="tag-chip">CA</span><span class="tag-chip">MBA</span><span class="tag-chip">CS</span></div>
+            </div>
+            <div class="form-field"><label>Preferred Occupation Types</label>
+              <div class="tag-chip-wrap"><span class="tag-chip">Chartered Accountant / Finance</span><span class="tag-chip">Business / Self-employed</span></div>
+            </div>
+            <div class="form-field"><label>Non Preferred Occupation Types</label>
+              <div class="tag-chip-wrap"><span class="tag-chip">Government / Defense</span></div>
+            </div>
+            <div class="form-field span-2"><label>Preference Notes</label>
+              <textarea class="form-input" rows="2">Open to a working professional from a similar cultural background; relocation to Pune preferred but not mandatory.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 8: Tags & Media -->
+        <div class="step-pane2" data-pane="8">
+          <h3 class="pane-title2">Tags &amp; Media</h3>
+
+          <div class="sub-card">
+            <h4 style="margin:0;font-size:0.78rem;font-weight:700;">Documents</h4>
+            <p class="hint" style="margin:0;">Upload documents or images. All selected files will use the chosen document type.</p>
+            <div class="field-grid">
+              <div class="form-field"><label>Document Type</label><select class="form-input"><option>Biodata PDF</option><option>Aadhaar Card</option></select></div>
+            </div>
+            <div class="dropzone"><strong>Drop files or click to browse</strong><span>PDF, JPG, PNG up to 10 MB</span></div>
+            <div class="tag-chip-wrap">
+              <span class="tag-chip">Naman_Doshi_Biodata.pdf <button type="button">✕</button></span>
+              <span class="tag-chip">Aadhaar_Card.pdf <button type="button">✕</button></span>
+            </div>
+          </div>
+
+          <div class="sub-card">
+            <h4 style="margin:0;font-size:0.78rem;font-weight:700;">Profile Photos</h4>
+            <div class="photo-grid">
+              <div class="photo-tile" style="background:var(--accent);">ND<span class="rm">✕</span></div>
+              <div class="photo-tile" style="background:var(--info);">ND<span class="rm">✕</span></div>
+              <div class="photo-tile" style="background:var(--success);">ND<span class="rm">✕</span></div>
+              <div class="dropzone photo-add" style="padding:0;font-size:0.6rem;">+ Add</div>
+            </div>
+          </div>
+
+          <div class="sub-card">
+            <h4 style="margin:0;font-size:0.78rem;font-weight:700;">Tags</h4>
+            <div class="tag-chip-wrap">
+              <span class="tag-chip">CA <button type="button">✕</button></span>
+              <span class="tag-chip">Pune <button type="button">✕</button></span>
+              <span class="tag-chip">Digambar <button type="button">✕</button></span>
+              <span class="tag-chip">Vegetarian <button type="button">✕</button></span>
+            </div>
+            <input class="form-input" placeholder="Search or create tags">
+          </div>
+
+          <div class="sub-card">
+            <div class="sub-card-head"><h4>Media Links</h4><button class="add-chip-btn" type="button">+ Add Link</button></div>
+            <div class="item-card">
+              <div class="mini-field-grid c3">
+                <div class="form-field"><label>Link Type</label><input class="form-input" value="LinkedIn"></div>
+                <div class="form-field span2"><label>Link URL</label><input class="form-input" value="https://linkedin.com/in/namandoshi"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-ghost" type="button" id="backBtn">&lt; Back</button>
+          <div class="wizard-actions-right">
+            <span class="autosave">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+              Draft saved 2 min ago
+            </span>
+            <button class="btn-primary" type="button" id="nextBtn">Save &amp; Next &gt;</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+
+(function () {
+  var STEP_LABELS = ["Duplicate Check", "Profile Basics", "Personal Details", "Education & Career", "Address", "Family", "Relatives", "Partner Preferences", "Tags & Media"];
+  var TOTAL = STEP_LABELS.length;
+  var navBtns = Array.prototype.slice.call(document.querySelectorAll('.step-nav-btn'));
+  var panes = Array.prototype.slice.call(document.querySelectorAll('.step-pane2'));
+  var fill = document.getElementById('progressFill');
+  var progressLabel = document.getElementById('progressLabel');
+  var progressPct = document.getElementById('progressPct');
+  var stepPill = document.getElementById('stepPill');
+  var backBtn = document.getElementById('backBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var current = 1;
+
+  function render() {
+    navBtns.forEach(function (btn) {
+      var idx = Number(btn.getAttribute('data-step'));
+      btn.classList.toggle('active', idx === current);
+      btn.classList.toggle('done', idx < current);
+      var num = btn.querySelector('.num');
+      if (idx < current) { num.textContent = '✓'; }
+      else { num.textContent = String(idx + 1).padStart(2, '0'); }
+    });
+    panes.forEach(function (pane) {
+      pane.classList.toggle('active', Number(pane.getAttribute('data-pane')) === current);
+    });
+    var pct = Math.round((current / (TOTAL - 1)) * 100);
+    fill.style.width = pct + '%';
+    progressLabel.textContent = STEP_LABELS[current] + ' · Step ' + (current + 1) + ' of ' + TOTAL;
+    progressPct.textContent = pct + '%';
+    stepPill.textContent = 'Step ' + (current + 1) + ' of ' + TOTAL + ' · ' + STEP_LABELS[current];
+    backBtn.disabled = current === 0;
+    nextBtn.textContent = current === TOTAL - 1 ? 'Complete Assignment' : 'Save & Next >';
+  }
+
+  navBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      current = Number(btn.getAttribute('data-step'));
+      render();
+    });
+  });
+  backBtn.addEventListener('click', function () { if (current > 0) { current -= 1; render(); } });
+  nextBtn.addEventListener('click', function () { if (current < TOTAL - 1) { current += 1; render(); } });
+
+  var matchCards = Array.prototype.slice.call(document.querySelectorAll('.match-card'));
+  matchCards.forEach(function (card) {
+    card.addEventListener('click', function () {
+      matchCards.forEach(function (c) { c.classList.remove('active'); });
+      card.classList.add('active');
+    });
+  });
+  var actionCards = Array.prototype.slice.call(document.querySelectorAll('.action-card'));
+  actionCards.forEach(function (card) {
+    card.addEventListener('click', function () {
+      actionCards.forEach(function (c) { c.classList.remove('active'); });
+      card.classList.add('active');
+    });
+  });
+
+  render();
+})();
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

@@ -3,3 +3,7 @@
 jain-kalyanam-db-knowledge.md
 schema_diagram.html
 .claude/
+.DS_Store
+
+# Real app source — has its own separate git repo, not part of this one
+jain-matrimony/

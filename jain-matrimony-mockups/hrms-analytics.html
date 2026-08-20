@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRMS Analytics · Jain Kalyanam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* ---- Filter card ---- */
+  .filter-card { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+  .filter-card-head { display: flex; flex-direction: column; gap: 0.15rem; }
+  .filter-card-head strong { font-size: 0.82rem; font-weight: 700; }
+  .filter-card-head span { font-size: 0.72rem; color: var(--ink-faint); }
+  .filter-row { display: flex; align-items: flex-end; gap: 0.75rem; flex-wrap: wrap; }
+  .filter-row .form-field { min-width: 150px; }
+  .filter-row .form-field.grow { flex: 1; min-width: 200px; }
+  .filter-summary { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .summary-chip {
+    font-size: 0.66rem; font-weight: 650; color: var(--ink-soft); background: var(--track);
+    border-radius: 999px; padding: 0.22rem 0.6rem;
+  }
+  .filter-actions-row { display: flex; align-items: center; gap: 0.6rem; }
+  .link-btn { border: none; background: none; color: var(--ink-faint); font-size: 0.75rem; font-weight: 650; cursor: pointer; font-family: inherit; padding: 0.5rem 0.2rem; }
+  .link-btn:hover { color: var(--ink); text-decoration: underline; }
+
+  /* ---- Visual grid ---- */
+  .hrms-visual-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 0.9rem; align-items: start; }
+  .chart-stack, .side-stack { display: flex; flex-direction: column; gap: 0.9rem; min-width: 0; }
+  .hrms-secondary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
+  @media (max-width: 1300px) { .hrms-secondary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 1080px) { .hrms-visual-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .hrms-secondary-grid { grid-template-columns: 1fr; } }
+
+  .chart-panel { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .chart-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+  .chart-panel-head h3 { margin: 0; font-size: 0.83rem; font-weight: 700; letter-spacing: -0.005em; }
+  .chart-panel-sub { margin: 0.2rem 0 0; font-size: 0.71rem; color: var(--ink-faint); max-width: 480px; line-height: 1.4; }
+  .chart-head-right { display: flex; align-items: center; gap: 0.5rem; flex: none; }
+  .chart-chip { font-size: 0.63rem; font-weight: 700; color: var(--ink-faint); background: var(--track); border-radius: 999px; padding: 0.22rem 0.6rem; white-space: nowrap; }
+  .info-btn {
+    width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface-solid);
+    color: var(--ink-faint); font-size: 0.66rem; font-weight: 700; cursor: pointer; font-family: inherit; flex: none;
+  }
+  .info-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .chart-canvas { width: 100%; }
+  .chart-canvas svg { width: 100%; height: auto; display: block; }
+  .help-card { display: none; background: var(--track); border-radius: 8px; padding: 0.75rem 0.85rem; font-size: 0.72rem; color: var(--ink-soft); line-height: 1.55; }
+  .help-card.open { display: block; }
+  .help-card .help-title { font-weight: 700; color: var(--ink); margin-bottom: 0.3rem; font-size: 0.75rem; }
+  .help-card ul { margin: 0.4rem 0; padding-left: 1.05rem; }
+  .help-card li { margin-bottom: 0.1rem; }
+
+  /* ---- Horizontal bar list (productivity / closure / dependency) ---- */
+  .metric-bar-list { display: flex; flex-direction: column; gap: 0.65rem; }
+  .metric-bar-row { display: flex; align-items: center; gap: 0.7rem; width: 100%; text-align: left; }
+  .metric-bar-row.clickable {
+    cursor: pointer; border: 1px solid transparent; border-radius: 8px; padding: 0.4rem 0.5rem; margin: -0.4rem -0.5rem;
+    background: none; font-family: inherit; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .metric-bar-row.clickable:hover { border-color: var(--border); background: var(--track); }
+  .metric-bar-id { flex: 1; min-width: 0; }
+  .metric-bar-name { font-size: 0.78rem; font-weight: 650; color: var(--ink); }
+  .metric-bar-meta { font-size: 0.67rem; color: var(--ink-faint); margin-top: 0.15rem; }
+  .metric-bar-side { flex: none; width: 168px; display: flex; align-items: center; gap: 0.5rem; }
+  .metric-bar-value { font-size: 0.75rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; width: 36px; text-align: right; flex: none; }
+  .metric-bar-track { flex: 1; height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; }
+  .metric-bar-fill { height: 100%; border-radius: 999px; background: var(--accent); }
+  .metric-bar-hint { font-size: 0.63rem; color: var(--ink-faint); margin-top: 0.2rem; }
+
+  /* ---- Backlog aging ---- */
+  .backlog-snapshot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+  @media (max-width: 480px) { .backlog-snapshot-grid { grid-template-columns: 1fr; } }
+  .backlog-snapshot { background: var(--track); border-radius: 8px; padding: 0.6rem 0.7rem; }
+  .backlog-snapshot .k { font-size: 0.61rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); font-weight: 700; }
+  .backlog-snapshot .v { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-top: 0.15rem; font-variant-numeric: tabular-nums; }
+  .backlog-snapshot .h { font-size: 0.63rem; color: var(--ink-faint); margin-top: 0.2rem; line-height: 1.35; }
+  .backlog-aging-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .backlog-aging-row { display: flex; flex-direction: column; gap: 0.3rem; }
+  .backlog-aging-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.71rem; }
+  .backlog-aging-top .bucket { font-weight: 650; color: var(--ink); }
+  .backlog-aging-top .total { color: var(--ink-faint); font-size: 0.66rem; }
+  .backlog-aging-track { height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; display: flex; gap: 1px; }
+  .backlog-seg { height: 100%; }
+  .backlog-aging-split { font-size: 0.63rem; color: var(--ink-faint); }
+
+  /* ---- Top active profiles ---- */
+  .profile-spotlight-list { display: flex; flex-direction: column; gap: 0.55rem; }
+  .profile-spotlight-row { display: flex; align-items: center; gap: 0.6rem; }
+  .profile-spotlight-avatar {
+    width: 34px; height: 34px; border-radius: 9px; flex: none; display: flex; align-items: center;
+    justify-content: center; color: #fff; font-weight: 700; font-size: 0.7rem;
+  }
+  .profile-spotlight-id { flex: 1; min-width: 0; }
+  .profile-spotlight-name { font-size: 0.78rem; font-weight: 650; color: var(--ink); }
+  .profile-spotlight-meta { font-size: 0.66rem; color: var(--ink-faint); margin-top: 0.1rem; font-family: ui-monospace, "SF Mono", monospace; }
+  .profile-spotlight-count { text-align: right; flex: none; }
+  .profile-spotlight-count .n { font-size: 0.88rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .profile-spotlight-count .l { font-size: 0.58rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* ---- Low activity alerts ---- */
+  .alert-list { display: flex; flex-direction: column; gap: 0.55rem; }
+  .alert-card {
+    background: var(--warning-wash); border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+    border-radius: 8px; padding: 0.6rem 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  }
+  .alert-name { font-size: 0.78rem; font-weight: 650; color: var(--ink); }
+  .alert-meta { font-size: 0.67rem; color: var(--ink-faint); margin-top: 0.1rem; }
+  .alert-stat { text-align: right; font-size: 0.7rem; color: var(--warning); font-weight: 700; white-space: nowrap; }
+  .alert-stat span { display: block; font-size: 0.61rem; color: var(--ink-faint); font-weight: 600; margin-top: 0.1rem; }
+
+  /* ---- User cell button in leaderboard ---- */
+  .user-cell-btn { border: none; background: none; cursor: pointer; font-family: inherit; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 0.1rem; }
+  .user-cell-btn .name { font-size: 0.78rem; font-weight: 650; color: var(--ink); }
+  .user-cell-btn:hover .name { color: var(--accent); text-decoration: underline; }
+  .user-cell-btn .meta { font-size: 0.65rem; color: var(--ink-faint); }
+
+  /* ---- Modal extensions (build on shared .modal-overlay/.modal-card/.modal-close/.modal-head) ---- */
+  .hrms-modal-shell { width: min(920px, 100%); }
+  .modal-eyebrow { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.25rem; }
+  .modal-subline { font-size: 0.76rem; color: var(--ink-faint); margin-top: 0.2rem; }
+  .modal-explain { font-size: 0.73rem; color: var(--ink-soft); background: var(--track); border-radius: 8px; padding: 0.6rem 0.75rem; line-height: 1.5; margin-bottom: 1rem; }
+  .modal-metric-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.55rem; margin-bottom: 1rem; }
+  @media (max-width: 760px) { .modal-metric-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 480px) { .modal-metric-grid { grid-template-columns: repeat(2, 1fr); } }
+  .modal-metric { background: var(--track); border-radius: 8px; padding: 0.55rem 0.5rem; text-align: center; }
+  .modal-metric .v { font-size: 1.02rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .modal-metric .l { font-size: 0.58rem; color: var(--ink-faint); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 0.15rem; line-height: 1.3; }
+  .modal-section { margin-top: 1rem; }
+  .modal-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.55rem; }
+  .modal-section-head h4 { margin: 0; font-size: 0.77rem; font-weight: 700; }
+  .modal-section-head .sub { font-size: 0.66rem; color: var(--ink-faint); margin-top: 0.1rem; display: block; }
+  .modal-section-count { font-size: 0.67rem; color: var(--ink-faint); }
+  .workload-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.55rem; }
+  @media (max-width: 700px) { .workload-grid { grid-template-columns: 1fr; } }
+  .workload-card { background: var(--track); border-radius: 8px; padding: 0.55rem 0.7rem; }
+  .workload-card .t { font-size: 0.76rem; font-weight: 650; color: var(--ink); }
+  .workload-card .m { font-size: 0.65rem; color: var(--ink-faint); margin-top: 0.15rem; font-family: ui-monospace, "SF Mono", monospace; }
+  .workload-card .b { font-size: 0.71rem; color: var(--ink-soft); margin-top: 0.3rem; line-height: 1.45; }
+
+  .history-filter-row { display: flex; align-items: flex-end; gap: 0.65rem; flex-wrap: wrap; }
+  .panel-toggle-btn { border: none; background: none; color: var(--accent); font-size: 0.68rem; font-weight: 700; cursor: pointer; font-family: inherit; padding: 0; flex: none; }
+  .panel-toggle-btn:hover { text-decoration: underline; }
+  .audit-tools { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+  .audit-tools .form-field { min-width: 190px; }
+  .audit-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 360px; overflow-y: auto; padding-right: 0.2rem; }
+  .audit-item { background: var(--track); border-radius: 8px; padding: 0.6rem 0.75rem; }
+  .audit-item[data-hidden="1"] { display: none; }
+  .audit-item-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+  .audit-badge { font-size: 0.62rem; font-weight: 700; color: var(--info); background: var(--info-wash); border-radius: 999px; padding: 0.16rem 0.55rem; white-space: nowrap; }
+  .audit-time { font-size: 0.64rem; color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .audit-meta { font-size: 0.72rem; color: var(--ink-soft); margin-top: 0.35rem; }
+  .audit-changes { margin-top: 0.4rem; }
+  .audit-changes summary { font-size: 0.67rem; color: var(--accent); cursor: pointer; font-weight: 650; }
+  .audit-change-row { display: flex; justify-content: space-between; gap: 0.6rem; font-size: 0.68rem; padding: 0.3rem 0; border-top: 1px solid var(--border); }
+  .audit-change-row:first-of-type { border-top: none; padding-top: 0.35rem; }
+  .audit-change-label { color: var(--ink-faint); font-weight: 650; flex: none; width: 130px; }
+  .audit-change-value { color: var(--ink); text-align: right; }
+  .day-row[data-hidden="1"] { display: none; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 34 34">
+          <circle cx="13" cy="17" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <circle cx="21" cy="17" r="9" fill="none" stroke="var(--info)" stroke-width="3"/>
+        </svg>
+      </span>
+      <div class="word">Jain Kalyanam<small>Matrimony Console</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item sidebar-toggle" id="sidebarToggle" type="button" aria-label="Collapse menu" title="Collapse menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l-6 7 6 7"/><path d="M19 5l-6 7 6 7"/></svg><span class="nav-label">Collapse menu</span></button>
+            <div class="nav-group">
+        <div class="nav-group-label">Core</div>
+        <a class="nav-item" href="dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Dashboard</span></a>
+        <a class="nav-item" href="search.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg><span class="nav-label">Search</span></a>
+        <a class="nav-item" href="assigned-profiles.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8.5 12.5l2 2 4-4.5"/></svg><span class="nav-label">Assigned Profiles</span></a>
+        <a class="nav-item" href="create-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M3.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg><span class="nav-label">Create Profile</span></a>
+        <a class="nav-item" href="edit-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.5 5.3a1.5 1.5 0 012.1 0l1.1 1.1a1.5 1.5 0 010 2.1L8.2 19 4 20z"/><path d="M13.5 7.3l3.2 3.2"/></svg><span class="nav-label">Edit Profile</span></a>
+        <a class="nav-item" href="profile-detail.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.2" r="2.7"/><path d="M7 17.5c0-2.8 2.2-4.3 5-4.3s5 1.5 5 4.3"/><circle cx="12" cy="12" r="9"/></svg><span class="nav-label">Profile Detail</span></a>
+        <a class="nav-item" href="my-profile.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4 3.3-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/></svg><span class="nav-label">My Profile</span></a>
+        <a class="nav-item" href="future-prospects.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg><span class="nav-label">Future Prospects</span></a>
+        <a class="nav-item" href="profile-alerts.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.5a6 6 0 0112 0v4l1.8 3H4.2L6 14.5v-4z"/><path d="M9.5 20a2.5 2.5 0 005 0"/></svg><span class="nav-label">Profile Alerts</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Admin</div>
+        <a class="nav-item" href="user-management.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c0-2.5 1.7-4 3.9-4"/></svg><span class="nav-label">User Management</span></a>
+        <a class="nav-item" href="audit-logs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg><span class="nav-label">Audit Logs</span></a>
+        <a class="nav-item" href="recommendation-dashboard.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="nav-label">Recommendation Dashboard</span></a>
+        <a class="nav-item active" href="hrms-analytics.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg><span class="nav-label">HRMS Analytics</span></a>
+        <a class="nav-item" href="task-assignment.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 12.5l2.2 2.2 5-5.2"/></svg><span class="nav-label">Task Assignment</span></a>
+        <a class="nav-item" href="duplicate-merge-history.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v6"/><path d="M6 14c0-3 3-5 6-5h4"/><path d="M18 16v-4"/></svg><span class="nav-label">Duplicate Merge History</span></a>
+        <a class="nav-item" href="permission-docs.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4.3"/></svg><span class="nav-label">Permission Docs</span></a>
+        <a class="nav-item" href="import-export.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v13"/><path d="M4.5 13.5L8 17l3.5-3.5"/><path d="M16 20V7"/><path d="M19.5 10.5L16 7l-3.5 3.5"/></svg><span class="nav-label">Import / Export</span></a>
+        <a class="nav-item" href="temp-recommendation-import.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-6.5A1.5 1.5 0 017 4.5h10a1.5 1.5 0 011.5 1l1.5 6.5"/><path d="M4 12v6.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V12"/></svg><span class="nav-label">Temp Recommendation Import</span></a>
+        <a class="nav-item" href="watermarked-pdf-redaction.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h6l4 4v13a1 1 0 01-1 1H8a1 1 0 01-1-1V4a1 1 0 011-1z"/><rect x="9.5" y="13.5" width="6" height="4.5" rx="1"/><path d="M11 13.5v-1.3a1.5 1.5 0 013 0v1.3"/></svg><span class="nav-label">Watermarked PDF Redaction</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar"><span>PS</span></div>
+      <div class="who"><strong>Prashant S.</strong><span>Admin</span></div>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <header class="topbar2">
+      <div class="crumb">HRMS Analytics<small>Admin</small></div>
+      <div class="topbar2-right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme">
+          <svg class="sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <svg class="moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main class="page-body">
+
+      <div class="page-head">
+        <div>
+          <h1>Team Performance Dashboard</h1>
+          <p class="sub">Track team productivity, workflow quality, and key profile outcomes in one live operational view.</p>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-ghost" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div class="glass-card filter-card">
+        <div class="filter-card-head">
+          <strong>Focus the report</strong>
+          <span>Choose date range, user, or role instead of typing free-text search.</span>
+        </div>
+        <div class="filter-row">
+          <div class="form-field">
+            <label>Date From</label>
+            <input class="form-input" type="date" value="2026-08-13">
+          </div>
+          <div class="form-field">
+            <label>Date To</label>
+            <input class="form-input" type="date" value="2026-08-19">
+          </div>
+          <div class="form-field grow">
+            <label>User</label>
+            <select class="form-input">
+              <option>All users</option>
+              <option>priya.sharma@jainkalyanam.com | Relationship Manager</option>
+              <option>rohit.mehta@jainkalyanam.com | Relationship Manager</option>
+              <option>kunal.jain@jainkalyanam.com | Relationship Manager</option>
+              <option>vikram.shah@jainkalyanam.com | Relationship Manager</option>
+              <option>anjali.doshi@jainkalyanam.com | Verifier</option>
+              <option>meera.oswal@jainkalyanam.com | Admin</option>
+            </select>
+          </div>
+          <div class="form-field grow">
+            <label>Role</label>
+            <select class="form-input">
+              <option>All roles</option>
+              <option>Relationship Manager</option>
+              <option>Verifier</option>
+              <option>Admin</option>
+              <option>Viewer</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-summary">
+          <span class="summary-chip">Range: 13 Aug 2026 to 19 Aug 2026</span>
+          <span class="summary-chip">User: All users</span>
+          <span class="summary-chip">Role: All roles</span>
+        </div>
+        <div class="filter-actions-row">
+          <button class="btn-primary" type="button">Apply Filters</button>
+          <button class="btn-ghost" type="button">Refresh</button>
+          <button class="link-btn" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-tile">
+          <div class="label">Avg Productivity</div>
+          <div class="value">67%</div>
+          <div class="delta">Top user: priya.sharma@jainkalyanam.com</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Follow-up Discipline</div>
+          <div class="value">78%</div>
+          <div class="delta">154 completed from 197 scheduled</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Meetings Done</div>
+          <div class="value">85</div>
+          <div class="delta">Meetings completed in the selected range</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Task Closure</div>
+          <div class="value">72%</div>
+          <div class="delta">120 closed from 167 assigned</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Match Impact</div>
+          <div class="value">17%</div>
+          <div class="delta">35 matches from 206 recommendations</div>
+        </div>
+      </div>
+
+      <div class="hrms-visual-grid">
+        <div class="chart-stack">
+
+          <section class="glass-card chart-panel">
+            <div class="chart-panel-head">
+              <div>
+                <h3>Daily Team Pulse</h3>
+                <p class="chart-panel-sub">How follow-up completions, meetings, and task closures move across the selected range.</p>
+              </div>
+              <div class="legend-row">
+                <span><span class="legend-dot" style="background: var(--info);"></span>Follow-ups Done</span>
+                <span><span class="legend-dot" style="background: var(--accent);"></span>Meetings Done</span>
+                <span><span class="legend-dot" style="background: var(--success);"></span>Tasks Closed</span>
+              </div>
+            </div>
+            <div class="chart-canvas">
+              <svg viewBox="0 0 760 300" role="img" aria-label="Daily Team Pulse">
+                <line x1="56" y1="238" x2="726" y2="238" stroke="var(--border)" stroke-width="2"/>
+                <line x1="56" y1="22" x2="56" y2="238" stroke="var(--border)" stroke-width="2"/>
+                <g stroke="var(--border)" stroke-width="1" stroke-dasharray="3 5">
+                  <line x1="56" y1="166" x2="726" y2="166"/>
+                  <line x1="56" y1="94" x2="726" y2="94"/>
+                  <line x1="56" y1="22" x2="726" y2="22"/>
+                </g>
+                <g fill="var(--ink-faint)" font-size="10">
+                  <text x="730" y="242">0</text>
+                  <text x="730" y="170">10</text>
+                  <text x="730" y="98">20</text>
+                  <text x="730" y="26">30</text>
+                </g>
+                <polyline points="56,173.2 167.7,158.8 279.3,166 391,144.4 502.7,151.6 614.3,130 726,137.2" fill="none" stroke="var(--success)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="56,202 167.7,187.6 279.3,194.8 391,180.4 502.7,187.6 614.3,173.2 726,180.4" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="56,108.4 167.7,79.6 279.3,101.2 391,58 502.7,86.8 614.3,36.4 726,65.2" fill="none" stroke="var(--info)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <g>
+                  <circle cx="56" cy="108.4" r="4" fill="var(--surface-solid)" stroke="var(--info)" stroke-width="2"><title>Follow-ups Done: 18 (13 Aug 2026)</title></circle>
+                  <circle cx="167.7" cy="79.6" r="4" fill="var(--surface-solid)" stroke="var(--info)" stroke-width="2"><title>Follow-ups Done: 22 (14 Aug 2026)</title></circle>
+                  <circle cx="279.3" cy="101.2" r="4" fill="var(--surface-solid)" stroke="var(--info)" stroke-width="2"><title>Follow-ups Done: 19 (15 Aug 2026)</title></circle>
+                  <circle cx="391" cy="58" r="4" fill="var(--surface-solid)" stroke="var(--info)" stroke-width="2"><title>Follow-ups Done: 25 (16 Aug 2026)</title></circle>
+                  <circle cx="502.7" cy="86.8" r="4" fill="var(--surface-solid)" stroke="var(--info)" stroke-width="2"><title>Follow-ups Done: 21 (17 Aug 2026)</title></circle>
+                  <circle cx="614.3" cy="36.4" r="4" fill="var(--surface-solid)" stroke="var(--info)" stroke-width="2"><title>Follow-ups Done: 28 (18 Aug 2026)</title></circle>
+                  <circle cx="726" cy="65.2" r="4" fill="var(--surface-solid)" stroke="var(--info)" stroke-width="2"><title>Follow-ups Done: 24 (19 Aug 2026)</title></circle>
+                </g>
+                <g>
+                  <circle cx="56" cy="202" r="4" fill="var(--surface-solid)" stroke="var(--accent)" stroke-width="2"><title>Meetings Done: 5 (13 Aug 2026)</title></circle>
+                  <circle cx="167.7" cy="187.6" r="4" fill="var(--surface-solid)" stroke="var(--accent)" stroke-width="2"><title>Meetings Done: 7 (14 Aug 2026)</title></circle>
+                  <circle cx="279.3" cy="194.8" r="4" fill="var(--surface-solid)" stroke="var(--accent)" stroke-width="2"><title>Meetings Done: 6 (15 Aug 2026)</title></circle>
+                  <circle cx="391" cy="180.4" r="4" fill="var(--surface-solid)" stroke="var(--accent)" stroke-width="2"><title>Meetings Done: 8 (16 Aug 2026)</title></circle>
+                  <circle cx="502.7" cy="187.6" r="4" fill="var(--surface-solid)" stroke="var(--accent)" stroke-width="2"><title>Meetings Done: 7 (17 Aug 2026)</title></circle>
+                  <circle cx="614.3" cy="173.2" r="4" fill="var(--surface-solid)" stroke="var(--accent)" stroke-width="2"><title>Meetings Done: 9 (18 Aug 2026)</title></circle>
+                  <circle cx="726" cy="180.4" r="4" fill="var(--surface-solid)" stroke="var(--accent)" stroke-width="2"><title>Meetings Done: 8 (19 Aug 2026)</title></circle>
+                </g>
+                <g>
+                  <circle cx="56" cy="173.2" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Tasks Closed: 9 (13 Aug 2026)</title></circle>
+                  <circle cx="167.7" cy="158.8" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Tasks Closed: 11 (14 Aug 2026)</title></circle>
+                  <circle cx="279.3" cy="166" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Tasks Closed: 10 (15 Aug 2026)</title></circle>
+                  <circle cx="391" cy="144.4" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Tasks Closed: 13 (16 Aug 2026)</title></circle>
+                  <circle cx="502.7" cy="151.6" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Tasks Closed: 12 (17 Aug 2026)</title></circle>
+                  <circle cx="614.3" cy="130" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Tasks Closed: 15 (18 Aug 2026)</title></circle>
+                  <circle cx="726" cy="137.2" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Tasks Closed: 14 (19 Aug 2026)</title></circle>
+                </g>
+                <g fill="var(--ink-faint)" font-size="11" text-anchor="middle">
+                  <text x="56" y="256">13 Aug</text>
+                  <text x="167.7" y="256">14 Aug</text>
+                  <text x="279.3" y="256">15 Aug</text>
+                  <text x="391" y="256">16 Aug</text>
+                  <text x="502.7" y="256">17 Aug</text>
+                  <text x="614.3" y="256">18 Aug</text>
+                  <text x="726" y="256">19 Aug</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+
+          <section class="glass-card chart-panel">
+            <div class="chart-panel-head">
+              <div>
+                <h3>Profile Movement</h3>
+                <p class="chart-panel-sub">Profiles added and matched across the selected range. Hover a point to see day-level counts.</p>
+              </div>
+              <div class="legend-row">
+                <span><span class="legend-dot" style="background: var(--warning);"></span>Profiles Added</span>
+                <span><span class="legend-dot" style="background: var(--success);"></span>Profiles Matched</span>
+              </div>
+            </div>
+            <div class="chart-canvas">
+              <svg viewBox="0 0 760 300" role="img" aria-label="Profile Movement">
+                <line x1="56" y1="238" x2="726" y2="238" stroke="var(--border)" stroke-width="2"/>
+                <line x1="56" y1="22" x2="56" y2="238" stroke="var(--border)" stroke-width="2"/>
+                <g stroke="var(--border)" stroke-width="1" stroke-dasharray="3 5">
+                  <line x1="56" y1="130" x2="726" y2="130"/>
+                  <line x1="56" y1="22" x2="726" y2="22"/>
+                </g>
+                <g fill="var(--ink-faint)" font-size="10">
+                  <text x="730" y="242">0</text>
+                  <text x="730" y="134">5</text>
+                  <text x="730" y="26">10</text>
+                </g>
+                <polyline points="56,194.8 167.7,173.2 279.3,194.8 391,151.6 502.7,173.2 614.3,130 726,151.6" fill="none" stroke="var(--success)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="56,108.4 167.7,65.2 279.3,130 391,43.6 502.7,86.8 614.3,22 726,65.2" fill="none" stroke="var(--warning)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <g>
+                  <circle cx="56" cy="108.4" r="4" fill="var(--surface-solid)" stroke="var(--warning)" stroke-width="2"><title>Profiles Added: 6 (13 Aug) — Devansh Mehta</title></circle>
+                  <circle cx="167.7" cy="65.2" r="4" fill="var(--surface-solid)" stroke="var(--warning)" stroke-width="2"><title>Profiles Added: 8 (14 Aug)</title></circle>
+                  <circle cx="279.3" cy="130" r="4" fill="var(--surface-solid)" stroke="var(--warning)" stroke-width="2"><title>Profiles Added: 5 (15 Aug)</title></circle>
+                  <circle cx="391" cy="43.6" r="4" fill="var(--surface-solid)" stroke="var(--warning)" stroke-width="2"><title>Profiles Added: 9 (16 Aug) — Ritika Gandhi</title></circle>
+                  <circle cx="502.7" cy="86.8" r="4" fill="var(--surface-solid)" stroke="var(--warning)" stroke-width="2"><title>Profiles Added: 7 (17 Aug)</title></circle>
+                  <circle cx="614.3" cy="22" r="4" fill="var(--surface-solid)" stroke="var(--warning)" stroke-width="2"><title>Profiles Added: 10 (18 Aug) — Kavya Zaveri</title></circle>
+                  <circle cx="726" cy="65.2" r="4" fill="var(--surface-solid)" stroke="var(--warning)" stroke-width="2"><title>Profiles Added: 8 (19 Aug)</title></circle>
+                </g>
+                <g>
+                  <circle cx="56" cy="194.8" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Profiles Matched: 2 (13 Aug)</title></circle>
+                  <circle cx="167.7" cy="173.2" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Profiles Matched: 3 (14 Aug) — Tanvi Sanghvi ↔ Yash Oswal</title></circle>
+                  <circle cx="279.3" cy="194.8" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Profiles Matched: 2 (15 Aug)</title></circle>
+                  <circle cx="391" cy="151.6" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Profiles Matched: 4 (16 Aug) — Aarav Shah ↔ Neha Kapadia</title></circle>
+                  <circle cx="502.7" cy="173.2" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Profiles Matched: 3 (17 Aug)</title></circle>
+                  <circle cx="614.3" cy="130" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Profiles Matched: 5 (18 Aug) — Simran Kothari ↔ Devansh Mehta</title></circle>
+                  <circle cx="726" cy="151.6" r="4" fill="var(--surface-solid)" stroke="var(--success)" stroke-width="2"><title>Profiles Matched: 4 (19 Aug)</title></circle>
+                </g>
+                <g fill="var(--ink-faint)" font-size="11" text-anchor="middle">
+                  <text x="56" y="256">13 Aug</text>
+                  <text x="167.7" y="256">14 Aug</text>
+                  <text x="279.3" y="256">15 Aug</text>
+                  <text x="391" y="256">16 Aug</text>
+                  <text x="502.7" y="256">17 Aug</text>
+                  <text x="614.3" y="256">18 Aug</text>
+                  <text x="726" y="256">19 Aug</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+
+          <section class="glass-card" style="padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="chart-panel-head">
+              <div>
+                <h3 style="margin:0;font-size:0.83rem;font-weight:700;">Team Leaderboard</h3>
+                <p class="chart-panel-sub">Ranked by delivery quality and user output in the selected scope.</p>
+              </div>
+              <div class="chart-chip">6 users</div>
+            </div>
+            <div class="table-card">
+              <div class="table-scroll" style="overflow-x: auto;">
+                <table class="dtable">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Role</th>
+                      <th class="num">Profiles Visited</th>
+                      <th class="num">Unique Profiles</th>
+                      <th class="num">Productivity</th>
+                      <th class="num">Follow-up Rate</th>
+                      <th class="num">Meetings</th>
+                      <th class="num">Converted</th>
+                      <th class="num">Follow-ups</th>
+                      <th class="num">Tasks Closed</th>
+                      <th class="num">Matches</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><button type="button" class="user-cell-btn" data-history="priya">
+                        <span class="name">Priya Sharma</span><span class="meta">Relationship Manager | View history</span>
+                      </button></td>
+                      <td>Relationship Manager</td>
+                      <td class="num">186</td><td class="num">142</td><td class="num">100%</td><td class="num">92%</td>
+                      <td class="num">24</td><td class="num">15</td><td class="num">58</td><td class="num">34</td><td class="num">11</td>
+                    </tr>
+                    <tr>
+                      <td><button type="button" class="user-cell-btn" data-history="rohit">
+                        <span class="name">Rohit Mehta</span><span class="meta">Relationship Manager | View history</span>
+                      </button></td>
+                      <td>Relationship Manager</td>
+                      <td class="num">164</td><td class="num">121</td><td class="num">88%</td><td class="num">85%</td>
+                      <td class="num">19</td><td class="num">12</td><td class="num">49</td><td class="num">27</td><td class="num">9</td>
+                    </tr>
+                    <tr>
+                      <td><button type="button" class="user-cell-btn" data-history="kunal">
+                        <span class="name">Kunal Jain</span><span class="meta">Relationship Manager | View history</span>
+                      </button></td>
+                      <td>Relationship Manager</td>
+                      <td class="num">151</td><td class="num">118</td><td class="num">74%</td><td class="num">78%</td>
+                      <td class="num">16</td><td class="num">9</td><td class="num">41</td><td class="num">22</td><td class="num">7</td>
+                    </tr>
+                    <tr>
+                      <td><button type="button" class="user-cell-btn" data-history="vikram">
+                        <span class="name">Vikram Shah</span><span class="meta">Relationship Manager | View history</span>
+                      </button></td>
+                      <td>Relationship Manager</td>
+                      <td class="num">129</td><td class="num">97</td><td class="num">61%</td><td class="num">70%</td>
+                      <td class="num">13</td><td class="num">7</td><td class="num">33</td><td class="num">18</td><td class="num">5</td>
+                    </tr>
+                    <tr>
+                      <td><button type="button" class="user-cell-btn" data-history="anjali">
+                        <span class="name">Anjali Doshi</span><span class="meta">Verifier | View history</span>
+                      </button></td>
+                      <td>Verifier</td>
+                      <td class="num">98</td><td class="num">80</td><td class="num">47%</td><td class="num">66%</td>
+                      <td class="num">8</td><td class="num">4</td><td class="num">21</td><td class="num">12</td><td class="num">2</td>
+                    </tr>
+                    <tr>
+                      <td><button type="button" class="user-cell-btn" data-history="meera">
+                        <span class="name">Meera Oswal</span><span class="meta">Admin | View history</span>
+                      </button></td>
+                      <td>Admin</td>
+                      <td class="num">62</td><td class="num">51</td><td class="num">33%</td><td class="num">58%</td>
+                      <td class="num">5</td><td class="num">2</td><td class="num">12</td><td class="num">7</td><td class="num">1</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-foot"><span>Showing 6 of 6 users</span><span>Sorted by meetings converted</span></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="side-stack">
+          <section class="glass-card chart-panel">
+            <div class="chart-panel-head">
+              <div>
+                <h3>Productivity Scoreboard</h3>
+                <p class="chart-panel-sub">A quick ranking of users based on meaningful work done in the selected range.</p>
+              </div>
+              <div class="chart-head-right">
+                <span class="chart-chip">Top users in this range</span>
+                <button type="button" class="info-btn" id="prodInfoBtn" aria-expanded="false" aria-label="Show how productivity score is calculated">i</button>
+              </div>
+            </div>
+            <div class="help-card" id="prodHelpCard">
+              <div class="help-title">How to read this score</div>
+              This is a comparison score, not a pass or fail grade. Stronger outcomes earn more credit than routine actions.
+              <ul>
+                <li>Handling a profile adds 1 point.</li>
+                <li>Giving a recommendation adds 2 points.</li>
+                <li>Completing a follow-up adds 3 points.</li>
+                <li>Finishing a meeting adds 4 points.</li>
+                <li>Converting a meeting adds 6 points.</li>
+                <li>Closing a task adds 3 points.</li>
+                <li>Completing a match adds 8 points.</li>
+              </ul>
+              The user with the highest total points becomes 100%; everyone else is shown relative to that top user.
+            </div>
+            <div class="metric-bar-list">
+              <div class="metric-bar-row">
+                <div class="metric-bar-id">
+                  <div class="metric-bar-name">Priya Sharma</div>
+                  <div class="metric-bar-meta">Relationship Manager | 15 converted | 11 matches | 34 tasks closed</div>
+                </div>
+                <div class="metric-bar-side"><span class="metric-bar-value">100%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:100%;background:var(--accent);"></div></div></div>
+              </div>
+              <div class="metric-bar-row">
+                <div class="metric-bar-id">
+                  <div class="metric-bar-name">Rohit Mehta</div>
+                  <div class="metric-bar-meta">Relationship Manager | 12 converted | 9 matches | 27 tasks closed</div>
+                </div>
+                <div class="metric-bar-side"><span class="metric-bar-value">88%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:88%;background:var(--accent);"></div></div></div>
+              </div>
+              <div class="metric-bar-row">
+                <div class="metric-bar-id">
+                  <div class="metric-bar-name">Kunal Jain</div>
+                  <div class="metric-bar-meta">Relationship Manager | 9 converted | 7 matches | 22 tasks closed</div>
+                </div>
+                <div class="metric-bar-side"><span class="metric-bar-value">74%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:74%;background:var(--accent);"></div></div></div>
+              </div>
+              <div class="metric-bar-row">
+                <div class="metric-bar-id">
+                  <div class="metric-bar-name">Vikram Shah</div>
+                  <div class="metric-bar-meta">Relationship Manager | 7 converted | 5 matches | 18 tasks closed</div>
+                </div>
+                <div class="metric-bar-side"><span class="metric-bar-value">61%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:61%;background:var(--accent);"></div></div></div>
+              </div>
+              <div class="metric-bar-row">
+                <div class="metric-bar-id">
+                  <div class="metric-bar-name">Anjali Doshi</div>
+                  <div class="metric-bar-meta">Verifier | 4 converted | 2 matches | 12 tasks closed</div>
+                </div>
+                <div class="metric-bar-side"><span class="metric-bar-value">47%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:47%;background:var(--accent);"></div></div></div>
+              </div>
+              <div class="metric-bar-row">
+                <div class="metric-bar-id">
+                  <div class="metric-bar-name">Meera Oswal</div>
+                  <div class="metric-bar-meta">Admin | 2 converted | 1 match | 7 tasks closed</div>
+                </div>
+                <div class="metric-bar-side"><span class="metric-bar-value">33%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:33%;background:var(--accent);"></div></div></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="glass-card chart-panel">
+            <div class="chart-panel-head">
+              <div>
+                <h3>Top Active Profiles</h3>
+                <p class="chart-panel-sub">The 5 profiles with the most logged activity in this selected range.</p>
+              </div>
+              <span class="chart-chip">Top 5 this range</span>
+            </div>
+            <div class="profile-spotlight-list">
+              <div class="profile-spotlight-row">
+                <div class="profile-spotlight-avatar" style="background: var(--accent);">AS</div>
+                <div class="profile-spotlight-id">
+                  <div class="profile-spotlight-name">Aarav Shah</div>
+                  <div class="profile-spotlight-meta">#JK10234 | ID 4234</div>
+                </div>
+                <div class="profile-spotlight-count"><div class="n">42</div><div class="l">activities</div></div>
+              </div>
+              <div class="profile-spotlight-row">
+                <div class="profile-spotlight-avatar" style="background: var(--info);">NK</div>
+                <div class="profile-spotlight-id">
+                  <div class="profile-spotlight-name">Neha Kapadia</div>
+                  <div class="profile-spotlight-meta">#JK20111 | ID 5111</div>
+                </div>
+                <div class="profile-spotlight-count"><div class="n">37</div><div class="l">activities</div></div>
+              </div>
+              <div class="profile-spotlight-row">
+                <div class="profile-spotlight-avatar" style="background: var(--success);">SK</div>
+                <div class="profile-spotlight-id">
+                  <div class="profile-spotlight-name">Simran Kothari</div>
+                  <div class="profile-spotlight-meta">#JK10298 | ID 4298</div>
+                </div>
+                <div class="profile-spotlight-count"><div class="n">33</div><div class="l">activities</div></div>
+              </div>
+              <div class="profile-spotlight-row">
+                <div class="profile-spotlight-avatar" style="background: var(--warning);">TS</div>
+                <div class="profile-spotlight-id">
+                  <div class="profile-spotlight-name">Tanvi Sanghvi</div>
+                  <div class="profile-spotlight-meta">#JK20144 | ID 5144</div>
+                </div>
+                <div class="profile-spotlight-count"><div class="n">29</div><div class="l">activities</div></div>
+              </div>
+              <div class="profile-spotlight-row">
+                <div class="profile-spotlight-avatar" style="background: color-mix(in srgb, var(--accent) 55%, var(--info) 45%);">YO</div>
+                <div class="profile-spotlight-id">
+                  <div class="profile-spotlight-name">Yash Oswal</div>
+                  <div class="profile-spotlight-meta">#JK20177 | ID 5177</div>
+                </div>
+                <div class="profile-spotlight-count"><div class="n">25</div><div class="l">activities</div></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="hrms-secondary-grid">
+        <section class="glass-card chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <h3>Backlog Pressure</h3>
+              <p class="chart-panel-sub">Live open work split by age so you can see where follow-ups, tasks, and recommendations are piling up.</p>
+            </div>
+            <span class="chart-chip">Live open workload</span>
+          </div>
+          <div class="backlog-snapshot-grid">
+            <div class="backlog-snapshot"><div class="k">Total Backlog</div><div class="v">115</div><div class="h">Open follow-ups, tasks, and active recommendations</div></div>
+            <div class="backlog-snapshot"><div class="k">Overdue Items</div><div class="v">27</div><div class="h">Delayed follow-ups and past-due tasks</div></div>
+            <div class="backlog-snapshot"><div class="k">Assigned Profiles</div><div class="v">64</div><div class="h">Profiles still sitting in active ownership</div></div>
+          </div>
+          <div class="legend-row">
+            <span><span class="legend-dot" style="background: var(--info);"></span>Follow-ups</span>
+            <span><span class="legend-dot" style="background: var(--accent);"></span>Tasks</span>
+            <span><span class="legend-dot" style="background: var(--success);"></span>Recommendations</span>
+          </div>
+          <div class="backlog-aging-list">
+            <div class="backlog-aging-row">
+              <div class="backlog-aging-top"><span class="bucket">0-3 days</span><span class="total">45 open items</span></div>
+              <div class="backlog-aging-track">
+                <div class="backlog-seg" style="width:49%;background:var(--info);" title="Follow-ups: 22"></div>
+                <div class="backlog-seg" style="width:31%;background:var(--accent);" title="Tasks: 14"></div>
+                <div class="backlog-seg" style="width:20%;background:var(--success);" title="Recommendations: 9"></div>
+              </div>
+              <div class="backlog-aging-split">22 F &middot; 14 T &middot; 9 R</div>
+            </div>
+            <div class="backlog-aging-row">
+              <div class="backlog-aging-top"><span class="bucket">4-7 days</span><span class="total">32 open items</span></div>
+              <div class="backlog-aging-track">
+                <div class="backlog-seg" style="width:47%;background:var(--info);" title="Follow-ups: 15"></div>
+                <div class="backlog-seg" style="width:34%;background:var(--accent);" title="Tasks: 11"></div>
+                <div class="backlog-seg" style="width:19%;background:var(--success);" title="Recommendations: 6"></div>
+              </div>
+              <div class="backlog-aging-split">15 F &middot; 11 T &middot; 6 R</div>
+            </div>
+            <div class="backlog-aging-row">
+              <div class="backlog-aging-top"><span class="bucket">8-14 days</span><span class="total">21 open items</span></div>
+              <div class="backlog-aging-track">
+                <div class="backlog-seg" style="width:43%;background:var(--info);" title="Follow-ups: 9"></div>
+                <div class="backlog-seg" style="width:38%;background:var(--accent);" title="Tasks: 8"></div>
+                <div class="backlog-seg" style="width:19%;background:var(--success);" title="Recommendations: 4"></div>
+              </div>
+              <div class="backlog-aging-split">9 F &middot; 8 T &middot; 4 R</div>
+            </div>
+            <div class="backlog-aging-row">
+              <div class="backlog-aging-top"><span class="bucket">15-30 days</span><span class="total">11 open items</span></div>
+              <div class="backlog-aging-track">
+                <div class="backlog-seg" style="width:45%;background:var(--info);" title="Follow-ups: 5"></div>
+                <div class="backlog-seg" style="width:37%;background:var(--accent);" title="Tasks: 4"></div>
+                <div class="backlog-seg" style="width:18%;background:var(--success);" title="Recommendations: 2"></div>
+              </div>
+              <div class="backlog-aging-split">5 F &middot; 4 T &middot; 2 R</div>
+            </div>
+            <div class="backlog-aging-row">
+              <div class="backlog-aging-top"><span class="bucket">30+ days</span><span class="total">6 open items</span></div>
+              <div class="backlog-aging-track">
+                <div class="backlog-seg" style="width:50%;background:var(--info);" title="Follow-ups: 3"></div>
+                <div class="backlog-seg" style="width:33%;background:var(--accent);" title="Tasks: 2"></div>
+                <div class="backlog-seg" style="width:17%;background:var(--success);" title="Recommendations: 1"></div>
+              </div>
+              <div class="backlog-aging-split">3 F &middot; 2 T &middot; 1 R</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-card chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <h3>Closure Efficiency</h3>
+              <p class="chart-panel-sub">Which users are converting active work into finished outcomes instead of carrying more forward.</p>
+            </div>
+            <span class="chart-chip">Closed vs still pending</span>
+          </div>
+          <div class="metric-bar-list">
+            <div class="metric-bar-row">
+              <div class="metric-bar-id"><div class="metric-bar-name">priya.sharma@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 92 closures | 18 live backlog | 42 assigned profiles</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">84%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:100%;background:var(--success);"></div></div></div>
+            </div>
+            <div class="metric-bar-row">
+              <div class="metric-bar-id"><div class="metric-bar-name">rohit.mehta@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 76 closures | 22 live backlog | 38 assigned profiles</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">78%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:93%;background:var(--success);"></div></div></div>
+            </div>
+            <div class="metric-bar-row">
+              <div class="metric-bar-id"><div class="metric-bar-name">kunal.jain@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 63 closures | 25 live backlog | 33 assigned profiles</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">71%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:85%;background:var(--success);"></div></div></div>
+            </div>
+            <div class="metric-bar-row">
+              <div class="metric-bar-id"><div class="metric-bar-name">vikram.shah@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 51 closures | 29 live backlog | 29 assigned profiles</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">64%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:76%;background:var(--success);"></div></div></div>
+            </div>
+            <div class="metric-bar-row">
+              <div class="metric-bar-id"><div class="metric-bar-name">anjali.doshi@jainkalyanam.com</div><div class="metric-bar-meta">Verifier | 35 closures | 31 live backlog | 21 assigned profiles</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">53%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:63%;background:var(--success);"></div></div></div>
+            </div>
+            <div class="metric-bar-row">
+              <div class="metric-bar-id"><div class="metric-bar-name">meera.oswal@jainkalyanam.com</div><div class="metric-bar-meta">Admin | 20 closures | 19 live backlog | 12 assigned profiles</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">45%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:53%;background:var(--success);"></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-card chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <h3>Dependency Load</h3>
+              <p class="chart-panel-sub">How much of the current live workload depends on each user right now. Click a row for details.</p>
+            </div>
+            <span class="chart-chip">Live workload share</span>
+          </div>
+          <div class="metric-bar-list">
+            <button type="button" class="metric-bar-row clickable" data-workload="priya">
+              <div class="metric-bar-id"><div class="metric-bar-name">priya.sharma@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 34 live items | 14 profiles | 9 open tasks</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">27%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:27%;background:var(--info);"></div></div></div>
+            </button>
+            <button type="button" class="metric-bar-row clickable" data-workload="rohit">
+              <div class="metric-bar-id"><div class="metric-bar-name">rohit.mehta@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 29 live items | 12 profiles | 8 open tasks</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">23%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:23%;background:var(--info);"></div></div></div>
+            </button>
+            <button type="button" class="metric-bar-row clickable" data-workload="kunal">
+              <div class="metric-bar-id"><div class="metric-bar-name">kunal.jain@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 24 live items | 10 profiles | 6 open tasks</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">19%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:19%;background:var(--info);"></div></div></div>
+            </button>
+            <button type="button" class="metric-bar-row clickable" data-workload="vikram">
+              <div class="metric-bar-id"><div class="metric-bar-name">vikram.shah@jainkalyanam.com</div><div class="metric-bar-meta">Relationship Manager | 19 live items | 8 profiles | 5 open tasks</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">15%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:15%;background:var(--info);"></div></div></div>
+            </button>
+            <button type="button" class="metric-bar-row clickable" data-workload="anjali">
+              <div class="metric-bar-id"><div class="metric-bar-name">anjali.doshi@jainkalyanam.com</div><div class="metric-bar-meta">Verifier | 14 live items | 6 profiles | 4 open tasks</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">11%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:11%;background:var(--info);"></div></div></div>
+            </button>
+            <button type="button" class="metric-bar-row clickable" data-workload="meera">
+              <div class="metric-bar-id"><div class="metric-bar-name">meera.oswal@jainkalyanam.com</div><div class="metric-bar-meta">Admin | 6 live items | 3 profiles | 1 open task</div></div>
+              <div class="metric-bar-side"><span class="metric-bar-value">5%</span><div class="metric-bar-track"><div class="metric-bar-fill" style="width:5%;background:var(--info);"></div></div></div>
+            </button>
+          </div>
+        </section>
+
+        <section class="glass-card chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <h3>Low Activity Alerts</h3>
+              <p class="chart-panel-sub">Users who still hold meaningful workload but have shown very little recent movement.</p>
+            </div>
+            <span class="chart-chip">Needs attention</span>
+          </div>
+          <div class="alert-list">
+            <div class="alert-card">
+              <div>
+                <div class="alert-name">anjali.doshi@jainkalyanam.com</div>
+                <div class="alert-meta">Verifier | 14 live items still open</div>
+              </div>
+              <div class="alert-stat">2 actions / 7d<span>Last activity 5 days ago</span></div>
+            </div>
+            <div class="alert-card">
+              <div>
+                <div class="alert-name">meera.oswal@jainkalyanam.com</div>
+                <div class="alert-meta">Admin | 6 live items still open</div>
+              </div>
+              <div class="alert-stat">1 action / 7d<span>Last activity 9 days ago</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Dependency workload modal -->
+<div class="modal-overlay" id="workloadModal">
+  <div class="modal-card hrms-modal-shell">
+    <button type="button" class="modal-close" id="workloadClose">&times;</button>
+    <div class="modal-head" style="flex-direction: column; align-items: flex-start; gap: 0;">
+      <div class="modal-eyebrow">Dependency Workload</div>
+      <h2 id="workloadTitle" style="margin: 0;">rohit.mehta@jainkalyanam.com</h2>
+      <p class="modal-subline" id="workloadSubline">Relationship Manager | Live workload as of 19 Aug 2026</p>
+    </div>
+    <div class="modal-explain">
+      Dependency load means how much current open work is still sitting with this user right now: assigned profiles, open follow-ups, open tasks, and active recommendations.
+    </div>
+    <div class="modal-metric-grid" id="workloadMetricGrid"></div>
+    <div id="workloadSections"></div>
+  </div>
+</div>
+
+<!-- User history modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal-card hrms-modal-shell">
+    <button type="button" class="modal-close" id="historyClose">&times;</button>
+    <div class="modal-head" style="flex-direction: column; align-items: flex-start; gap: 0;">
+      <div class="modal-eyebrow">User History</div>
+      <h2 id="historyTitle" style="margin: 0;">priya.sharma@jainkalyanam.com</h2>
+      <p class="modal-subline" id="historySubline">Relationship Manager | 13 Aug 2026 to 19 Aug 2026</p>
+    </div>
+
+    <div class="history-filter-row">
+      <div class="form-field">
+        <label>Filter By Day</label>
+        <input class="form-input" type="date" id="historyDayInput" min="2026-08-13" max="2026-08-19">
+      </div>
+      <button type="button" class="btn-ghost" id="historyAllDaysBtn">All Days</button>
+    </div>
+
+    <div class="modal-metric-grid" id="historyMetricGrid"></div>
+
+    <div class="modal-section">
+      <div class="modal-section-head">
+        <div>
+          <h4>Day-wise Analytics</h4>
+          <span class="sub">One row per day from the saved user_daily_metrics table.</span>
+        </div>
+        <span class="modal-section-count" id="historyDayCount">7 days</span>
+        <button type="button" class="panel-toggle-btn" id="historyAnalyticsToggle">Collapse</button>
+      </div>
+      <div id="historyAnalyticsPanel">
+        <div class="table-card">
+          <div class="table-scroll" style="overflow-x: auto;">
+            <table class="dtable">
+              <thead>
+                <tr><th>Date</th><th class="num">Calls</th><th class="num">Meetings</th><th class="num">Converted</th><th class="num">Follow-ups</th><th class="num">Tasks Closed</th><th class="num">Matches</th></tr>
+              </thead>
+              <tbody id="historyDayRows">
+                <tr class="day-row" data-date="2026-08-13"><td>13 Aug 2026</td><td class="num">28</td><td class="num">3</td><td class="num">2</td><td class="num">7</td><td class="num">4</td><td class="num">1</td></tr>
+                <tr class="day-row" data-date="2026-08-14"><td>14 Aug 2026</td><td class="num">31</td><td class="num">4</td><td class="num">3</td><td class="num">9</td><td class="num">5</td><td class="num">2</td></tr>
+                <tr class="day-row" data-date="2026-08-15"><td>15 Aug 2026</td><td class="num">34</td><td class="num">4</td><td class="num">3</td><td class="num">9</td><td class="num">5</td><td class="num">2</td></tr>
+                <tr class="day-row" data-date="2026-08-16"><td>16 Aug 2026</td><td class="num">41</td><td class="num">5</td><td class="num">3</td><td class="num">11</td><td class="num">6</td><td class="num">2</td></tr>
+                <tr class="day-row" data-date="2026-08-17"><td>17 Aug 2026</td><td class="num">29</td><td class="num">3</td><td class="num">2</td><td class="num">8</td><td class="num">5</td><td class="num">1</td></tr>
+                <tr class="day-row" data-date="2026-08-18"><td>18 Aug 2026</td><td class="num">38</td><td class="num">5</td><td class="num">4</td><td class="num">12</td><td class="num">7</td><td class="num">3</td></tr>
+                <tr class="day-row" data-date="2026-08-19"><td>19 Aug 2026</td><td class="num">13</td><td class="num">0</td><td class="num">0</td><td class="num">2</td><td class="num">2</td><td class="num">0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-head">
+        <div>
+          <h4>Audit Timeline</h4>
+          <span class="sub">Human-readable activity changes for this user in the selected range.</span>
+        </div>
+        <div class="audit-tools">
+          <div class="form-field">
+            <label>Action</label>
+            <select class="form-input" id="auditActionSelect">
+              <option value="">All actions (150)</option>
+              <option value="Recommendation Shared">Recommendation Shared (34)</option>
+              <option value="Follow Up Completed">Follow Up Completed (58)</option>
+              <option value="Task Status Updated">Task Status Updated (22)</option>
+              <option value="Meeting Marked Done">Meeting Marked Done (24)</option>
+              <option value="Future Prospect Created">Future Prospect Created (12)</option>
+            </select>
+          </div>
+          <span class="modal-section-count">150 activities</span>
+        </div>
+        <button type="button" class="panel-toggle-btn" id="historyAuditToggle">Collapse</button>
+      </div>
+      <div id="historyAuditPanel">
+        <div class="audit-list" id="auditList">
+          <article class="audit-item" data-action="Recommendation Shared">
+            <div class="audit-item-head"><span class="audit-badge">Recommendation Shared</span><span class="audit-time">19 Aug 2026, 04:12 pm</span></div>
+            <div class="audit-meta">Recommendation: Tanvi Sanghvi (#JK20144) &rarr; Neha Kapadia (#JK20111)</div>
+            <details class="audit-changes">
+              <summary>View changes</summary>
+              <div class="audit-change-row"><div class="audit-change-label">Status</div><div class="audit-change-value">Pending -&gt; Shared</div></div>
+            </details>
+          </article>
+          <article class="audit-item" data-action="Follow Up Completed">
+            <div class="audit-item-head"><span class="audit-badge">Follow Up Completed</span><span class="audit-time">19 Aug 2026, 11:05 am</span></div>
+            <div class="audit-meta">Future Prospect: Aarav Shah (#JK10234)</div>
+            <details class="audit-changes">
+              <summary>View changes</summary>
+              <div class="audit-change-row"><div class="audit-change-label">Follow Up Status</div><div class="audit-change-value">Scheduled -&gt; Completed</div></div>
+              <div class="audit-change-row"><div class="audit-change-label">Outcome</div><div class="audit-change-value">- -&gt; Positive</div></div>
+            </details>
+          </article>
+          <article class="audit-item" data-action="Task Status Updated">
+            <div class="audit-item-head"><span class="audit-badge">Task Status Updated</span><span class="audit-time">18 Aug 2026, 05:40 pm</span></div>
+            <div class="audit-meta">Task: Verify updated horoscope document</div>
+            <details class="audit-changes">
+              <summary>View changes</summary>
+              <div class="audit-change-row"><div class="audit-change-label">Status</div><div class="audit-change-value">Pending -&gt; In Progress</div></div>
+            </details>
+          </article>
+          <article class="audit-item" data-action="Meeting Marked Done">
+            <div class="audit-item-head"><span class="audit-badge">Meeting Marked Done</span><span class="audit-time">17 Aug 2026, 02:20 pm</span></div>
+            <div class="audit-meta">Meeting: with Yash Oswal (#JK20177)</div>
+            <details class="audit-changes">
+              <summary>View changes</summary>
+              <div class="audit-change-row"><div class="audit-change-label">Status</div><div class="audit-change-value">Planned -&gt; Done</div></div>
+            </details>
+          </article>
+        </div>
+        <button type="button" class="btn-ghost" style="margin-top: 0.75rem;">Load More Activity</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var themeToggle = document.getElementById('themeToggle');
+var root = document.documentElement;
+function systemPrefersDark() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  var isDark = t === 'dark' || (!t && systemPrefersDark());
+  if (themeToggle) themeToggle.classList.toggle('is-dark', isDark);
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('jk-theme'); } catch (e) {}
+applyTheme(savedTheme);
+if (themeToggle) themeToggle.addEventListener('click', function () {
+  var current = root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  var next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('jk-theme', next); } catch (e) {}
+});
+
+// ---- Productivity scoreboard info toggle ----
+var prodInfoBtn = document.getElementById('prodInfoBtn');
+var prodHelpCard = document.getElementById('prodHelpCard');
+if (prodInfoBtn) prodInfoBtn.addEventListener('click', function () {
+  var open = prodHelpCard.classList.toggle('open');
+  prodInfoBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+
+// ---- Collapse / expand panel toggles (Day-wise Analytics / Audit Timeline) ----
+function wireToggle(btnId, panelId) {
+  var btn = document.getElementById(btnId);
+  var panel = document.getElementById(panelId);
+  if (!btn || !panel) return;
+  btn.addEventListener('click', function () {
+    var collapsed = panel.style.display === 'none';
+    panel.style.display = collapsed ? '' : 'none';
+    btn.textContent = collapsed ? 'Collapse' : 'Expand';
+  });
+}
+wireToggle('historyAnalyticsToggle', 'historyAnalyticsPanel');
+wireToggle('historyAuditToggle', 'historyAuditPanel');
+
+// ---- Workload detail modal ----
+var WORKLOAD_DATA = {
+  priya: {
+    title: 'priya.sharma@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['34','Total Workload'], ['14','Assigned Profiles'], ['9','Open Follow-ups (2 overdue)'], ['7','Open Tasks (1 overdue)'], ['11','Active Recommendations'], ['22','Recent Activity (7d)'] ],
+    profiles: [
+      { t: 'Aarav Shah', m: '#JK10234 | ID 4234', b: 'Assigned on 14 Aug 2026, 09:10 am' },
+      { t: 'Neha Kapadia', m: '#JK20111 | ID 5111', b: 'Assigned on 11 Aug 2026, 02:30 pm' },
+      { t: 'Simran Kothari', m: '#JK10298 | ID 4298', b: 'Assigned on 06 Aug 2026, 04:00 pm' }
+    ],
+    followups: [
+      { t: 'Aarav Shah', m: '#JK10234 | Due 20 Aug 2026, 10:00 am', b: 'Confirm horoscope match feedback from the family.' },
+      { t: 'Neha Kapadia', m: '#JK20111 | Due 19 Aug 2026, 05:00 pm', b: 'Share updated biodata after photo re-shoot.' },
+      { t: 'Simran Kothari', m: '#JK10298 | Due 17 Aug 2026, 11:30 am', b: 'Overdue: call to confirm meeting venue.' }
+    ],
+    tasks: [
+      { t: 'Re-verify Aadhaar upload', m: 'Pending | Due 21 Aug 2026', b: 'Linked profile: Aarav Shah (#JK10234)' },
+      { t: 'Share updated biodata PDF', m: 'In Progress | Due 20 Aug 2026', b: 'Linked profile: Neha Kapadia (#JK20111)' },
+      { t: 'Collect reference contact', m: 'Pending | Due 16 Aug 2026', b: 'No profile linked' }
+    ],
+    recommendations: [
+      { t: 'Aarav Shah &rarr; Neha Kapadia', m: '#JK10234 &rarr; #JK20111 | Meeting Planned', b: 'Created 12 Aug 2026, 03:10 pm' },
+      { t: 'Simran Kothari &rarr; Devansh Mehta', m: '#JK10298 &rarr; #JK10530 | Interested', b: 'Created 09 Aug 2026, 11:20 am' }
+    ]
+  },
+  rohit: {
+    title: 'rohit.mehta@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['29','Total Workload'], ['12','Assigned Profiles'], ['9','Open Follow-ups (2 overdue)'], ['8','Open Tasks (1 overdue)'], ['8','Active Recommendations'], ['16','Recent Activity (7d)'] ],
+    profiles: [
+      { t: 'Tanvi Sanghvi', m: '#JK20144 | ID 4144', b: 'Assigned on 12 Aug 2026, 10:15 am' },
+      { t: 'Yash Oswal', m: '#JK20177 | ID 4177', b: 'Assigned on 09 Aug 2026, 03:40 pm' },
+      { t: 'Simran Kothari', m: '#JK10298 | ID 4298', b: 'Assigned on 05 Aug 2026, 11:00 am' }
+    ],
+    followups: [
+      { t: 'Tanvi Sanghvi', m: '#JK20144 | Due 20 Aug 2026, 05:00 pm', b: 'Call to confirm meeting venue for this weekend.' },
+      { t: 'Yash Oswal', m: '#JK20177 | Due 21 Aug 2026, 11:00 am', b: 'Share updated biodata with family.' },
+      { t: 'Aarav Shah', m: '#JK10234 | Due 18 Aug 2026, 09:30 am', b: 'Overdue: follow up on family meeting feedback.' }
+    ],
+    tasks: [
+      { t: 'Verify updated horoscope document', m: 'Pending | Due 20 Aug 2026', b: 'Linked profile: Tanvi Sanghvi (#JK20144)' },
+      { t: 'Re-share profile after edits', m: 'In Progress | Due 22 Aug 2026', b: 'Linked profile: Yash Oswal (#JK20177)' },
+      { t: 'Collect reference contact', m: 'Pending | Due 17 Aug 2026', b: 'Overdue &middot; No profile linked' }
+    ],
+    recommendations: [
+      { t: 'Tanvi Sanghvi &rarr; Yash Oswal', m: '#JK20144 &rarr; #JK20177 | Shared', b: 'Created 12 Aug 2026, 10:20 am' },
+      { t: 'Simran Kothari &rarr; Devansh Mehta', m: '#JK10298 &rarr; #JK10530 | Interested', b: 'Created 10 Aug 2026, 04:15 pm' },
+      { t: 'Aarav Shah &rarr; Neha Kapadia', m: '#JK10234 &rarr; #JK20111 | Meeting Planned', b: 'Created 08 Aug 2026, 01:30 pm' }
+    ]
+  },
+  kunal: {
+    title: 'kunal.jain@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['24','Total Workload'], ['10','Assigned Profiles'], ['6','Open Follow-ups (1 overdue)'], ['6','Open Tasks (1 overdue)'], ['2','Active Recommendations'], ['13','Recent Activity (7d)'] ],
+    profiles: [
+      { t: 'Riya Bafna', m: '#JK10610 | ID 4610', b: 'Assigned on 08 Aug 2026, 01:00 pm' },
+      { t: 'Ritika Gandhi', m: '#JK20260 | ID 5260', b: 'Assigned on 04 Aug 2026, 09:45 am' }
+    ],
+    followups: [
+      { t: 'Riya Bafna', m: '#JK10610 | Due 20 Aug 2026, 03:00 pm', b: 'Discuss family preferences before next meeting.' },
+      { t: 'Ritika Gandhi', m: '#JK20260 | Due 16 Aug 2026, 10:00 am', b: 'Overdue: awaiting response after first call.' }
+    ],
+    tasks: [
+      { t: 'Update sect and community details', m: 'Pending | Due 21 Aug 2026', b: 'Linked profile: Riya Bafna (#JK10610)' },
+      { t: 'Close duplicate entry check', m: 'In Progress | Due 19 Aug 2026', b: 'No profile linked' }
+    ],
+    recommendations: [
+      { t: 'Riya Bafna &rarr; Aarav Shah', m: '#JK10610 &rarr; #JK10234 | Not Suitable', b: 'Created 13 Aug 2026, 04:40 pm' }
+    ]
+  },
+  vikram: {
+    title: 'vikram.shah@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['19','Total Workload'], ['8','Assigned Profiles'], ['5','Open Follow-ups (1 overdue)'], ['5','Open Tasks (0 overdue)'], ['1','Active Recommendations'], ['9','Recent Activity (7d)'] ],
+    profiles: [
+      { t: 'Kavya Zaveri', m: '#JK20450 | ID 5450', b: 'Assigned on 07 Aug 2026, 02:15 pm' }
+    ],
+    followups: [
+      { t: 'Kavya Zaveri', m: '#JK20450 | Due 22 Aug 2026, 12:00 pm', b: 'Share reference contact once verified.' }
+    ],
+    tasks: [
+      { t: 'Verify income documents', m: 'Pending | Due 23 Aug 2026', b: 'Linked profile: Kavya Zaveri (#JK20450)' }
+    ],
+    recommendations: [
+      { t: 'Kavya Zaveri &rarr; Aarav Shah', m: '#JK20450 &rarr; #JK10234 | Rejected', b: 'Created 30 Jul 2026, 04:00 pm' }
+    ]
+  },
+  anjali: {
+    title: 'anjali.doshi@jainkalyanam.com', role: 'Verifier',
+    metrics: [ ['14','Total Workload'], ['6','Assigned Profiles'], ['4','Open Follow-ups (1 overdue)'], ['3','Open Tasks (1 overdue)'], ['1','Active Recommendations'], ['2','Recent Activity (7d)'] ],
+    profiles: [
+      { t: 'Devansh Mehta', m: '#JK10530 | ID 4530', b: 'Assigned on 02 Aug 2026, 11:20 am' }
+    ],
+    followups: [
+      { t: 'Devansh Mehta', m: '#JK10530 | Due 15 Aug 2026, 04:00 pm', b: 'Overdue: verify family reference details.' }
+    ],
+    tasks: [
+      { t: 'Cross-check submitted documents', m: 'Pending | Due 14 Aug 2026', b: 'Overdue &middot; Linked profile: Devansh Mehta (#JK10530)' }
+    ],
+    recommendations: [
+      { t: 'Devansh Mehta &rarr; Ritika Gandhi', m: '#JK10530 &rarr; #JK20260 | Pending', b: 'Created 16 Aug 2026, 09:50 am' }
+    ]
+  },
+  meera: {
+    title: 'meera.oswal@jainkalyanam.com', role: 'Admin',
+    metrics: [ ['6','Total Workload'], ['3','Assigned Profiles'], ['1','Open Follow-ups (0 overdue)'], ['1','Open Tasks (0 overdue)'], ['1','Active Recommendations'], ['1','Recent Activity (7d)'] ],
+    profiles: [
+      { t: 'Meera Sanghavi', m: '#JK20399 | ID 5399', b: 'Assigned on 28 Jul 2026, 03:00 pm' }
+    ],
+    followups: [
+      { t: 'Meera Sanghavi', m: '#JK20399 | Due 24 Aug 2026, 01:00 pm', b: 'Routine check-in call, low priority.' }
+    ],
+    tasks: [
+      { t: 'Archive stale enquiry note', m: 'Pending | Due 25 Aug 2026', b: 'No profile linked' }
+    ],
+    recommendations: [
+      { t: 'Aarav Shah &rarr; Meera Sanghavi', m: '#JK10234 &rarr; #JK20399 | Not Suitable', b: 'Created 02 Aug 2026, 05:30 pm' }
+    ]
+  }
+};
+
+function renderWorkloadSectionCards(items) {
+  if (!items || !items.length) return '<div style="font-size:0.73rem;color:var(--ink-faint);padding:0.4rem 0;">No items in this scope.</div>';
+  return '<div class="workload-grid">' + items.map(function (item) {
+    return '<div class="workload-card"><div class="t">' + item.t + '</div><div class="m">' + item.m + '</div><div class="b">' + item.b + '</div></div>';
+  }).join('') + '</div>';
+}
+
+var workloadModal = document.getElementById('workloadModal');
+function openWorkloadModal(key) {
+  var data = WORKLOAD_DATA[key];
+  if (!data) return;
+  document.getElementById('workloadTitle').textContent = data.title;
+  document.getElementById('workloadSubline').textContent = data.role + ' | Live workload as of 19 Aug 2026';
+  document.getElementById('workloadMetricGrid').innerHTML = data.metrics.map(function (m) {
+    return '<div class="modal-metric"><div class="v">' + m[0] + '</div><div class="l">' + m[1] + '</div></div>';
+  }).join('');
+  document.getElementById('workloadSections').innerHTML =
+    '<div class="modal-section"><div class="modal-section-head"><div><h4>Assigned Profiles</h4><span class="sub">Profiles that are still actively sitting with this user.</span></div><span class="modal-section-count">' + data.profiles.length + ' shown</span></div>' + renderWorkloadSectionCards(data.profiles) + '</div>' +
+    '<div class="modal-section"><div class="modal-section-head"><div><h4>Open Follow-ups</h4><span class="sub">Scheduled follow-ups that are still pending.</span></div><span class="modal-section-count">' + data.followups.length + ' shown</span></div>' + renderWorkloadSectionCards(data.followups) + '</div>' +
+    '<div class="modal-section"><div class="modal-section-head"><div><h4>Open Tasks</h4><span class="sub">Tasks that are still pending or in progress.</span></div><span class="modal-section-count">' + data.tasks.length + ' shown</span></div>' + renderWorkloadSectionCards(data.tasks) + '</div>' +
+    '<div class="modal-section"><div class="modal-section-head"><div><h4>Active Recommendations</h4><span class="sub">Recommendation pipeline still waiting to be closed.</span></div><span class="modal-section-count">' + data.recommendations.length + ' shown</span></div>' + renderWorkloadSectionCards(data.recommendations) + '</div>';
+  workloadModal.classList.add('open');
+}
+document.querySelectorAll('[data-workload]').forEach(function (btn) {
+  btn.addEventListener('click', function () { openWorkloadModal(btn.getAttribute('data-workload')); });
+});
+document.getElementById('workloadClose').addEventListener('click', function () { workloadModal.classList.remove('open'); });
+workloadModal.addEventListener('click', function (event) { if (event.target === workloadModal) workloadModal.classList.remove('open'); });
+
+// ---- User history modal ----
+var HISTORY_DATA = {
+  priya: { title: 'priya.sharma@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['214','Calls In Range'], ['186','Profiles Handled'], ['64','Recommendations'], ['92%','Follow-up Rate'], ['24','Meetings Done'], ['15','Meetings Converted'], ['34','Tasks Completed'], ['11','Matches'] ] },
+  rohit: { title: 'rohit.mehta@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['178','Calls In Range'], ['164','Profiles Handled'], ['52','Recommendations'], ['85%','Follow-up Rate'], ['19','Meetings Done'], ['12','Meetings Converted'], ['27','Tasks Completed'], ['9','Matches'] ] },
+  kunal: { title: 'kunal.jain@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['151','Calls In Range'], ['151','Profiles Handled'], ['44','Recommendations'], ['78%','Follow-up Rate'], ['16','Meetings Done'], ['9','Meetings Converted'], ['22','Tasks Completed'], ['7','Matches'] ] },
+  vikram: { title: 'vikram.shah@jainkalyanam.com', role: 'Relationship Manager',
+    metrics: [ ['122','Calls In Range'], ['129','Profiles Handled'], ['33','Recommendations'], ['70%','Follow-up Rate'], ['13','Meetings Done'], ['7','Meetings Converted'], ['18','Tasks Completed'], ['5','Matches'] ] },
+  anjali: { title: 'anjali.doshi@jainkalyanam.com', role: 'Verifier',
+    metrics: [ ['87','Calls In Range'], ['98','Profiles Handled'], ['19','Recommendations'], ['66%','Follow-up Rate'], ['8','Meetings Done'], ['4','Meetings Converted'], ['12','Tasks Completed'], ['2','Matches'] ] },
+  meera: { title: 'meera.oswal@jainkalyanam.com', role: 'Admin',
+    metrics: [ ['46','Calls In Range'], ['62','Profiles Handled'], ['9','Recommendations'], ['58%','Follow-up Rate'], ['5','Meetings Done'], ['2','Meetings Converted'], ['7','Tasks Completed'], ['1','Matches'] ] }
+};
+
+var historyModal = document.getElementById('historyModal');
+var historyDayInput = document.getElementById('historyDayInput');
+
+function openHistoryModal(key) {
+  var data = HISTORY_DATA[key];
+  if (!data) return;
+  document.getElementById('historyTitle').textContent = data.title;
+  document.getElementById('historySubline').textContent = data.role + ' | 13 Aug 2026 to 19 Aug 2026';
+  document.getElementById('historyMetricGrid').innerHTML = data.metrics.map(function (m) {
+    return '<div class="modal-metric"><div class="v">' + m[0] + '</div><div class="l">' + m[1] + '</div></div>';
+  }).join('');
+  historyDayInput.value = '';
+  applyHistoryDayFilter('');
+  historyModal.classList.add('open');
+}
+document.querySelectorAll('[data-history]').forEach(function (btn) {
+  btn.addEventListener('click', function () { openHistoryModal(btn.getAttribute('data-history')); });
+});
+document.getElementById('historyClose').addEventListener('click', function () { historyModal.classList.remove('open'); });
+historyModal.addEventListener('click', function (event) { if (event.target === historyModal) historyModal.classList.remove('open'); });
+
+function applyHistoryDayFilter(day) {
+  var rows = document.querySelectorAll('.day-row');
+  var visible = 0;
+  rows.forEach(function (row) {
+    var show = !day || row.getAttribute('data-date') === day;
+    row.setAttribute('data-hidden', show ? '0' : '1');
+    if (show) visible++;
+  });
+  document.getElementById('historyDayCount').textContent = day ? (visible + ' day' + (visible === 1 ? '' : 's')) : '7 days';
+}
+historyDayInput.addEventListener('change', function () { applyHistoryDayFilter(historyDayInput.value); });
+document.getElementById('historyAllDaysBtn').addEventListener('click', function () { historyDayInput.value = ''; applyHistoryDayFilter(''); });
+
+var auditActionSelect = document.getElementById('auditActionSelect');
+auditActionSelect.addEventListener('change', function () {
+  var chosen = auditActionSelect.value;
+  document.querySelectorAll('#auditList .audit-item').forEach(function (item) {
+    var show = !chosen || item.getAttribute('data-action') === chosen;
+    item.setAttribute('data-hidden', show ? '0' : '1');
+  });
+});
+</script>
+<script>
+(function () {
+  var sidebarToggle = document.getElementById('sidebarToggle');
+  var sidebarEl = document.querySelector('.sidebar');
+  if (!sidebarToggle || !sidebarEl) return;
+  function applySidebarCollapsed(c) {
+    sidebarEl.classList.toggle('collapsed', c);
+    var label = c ? 'Expand menu' : 'Collapse menu';
+    sidebarToggle.setAttribute('aria-label', label);
+    sidebarToggle.title = label;
+  }
+  var savedCollapsed = false;
+  try { savedCollapsed = localStorage.getItem('jk-sidebar-collapsed') === '1'; } catch (e) {}
+  applySidebarCollapsed(savedCollapsed);
+  sidebarToggle.addEventListener('click', function () {
+    var next = !sidebarEl.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('jk-sidebar-collapsed', next ? '1' : '0'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

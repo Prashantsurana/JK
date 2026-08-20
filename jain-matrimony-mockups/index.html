@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jain Kalyanam — Mockup Index</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    .launcher { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    .launcher-head { margin-bottom: 1.75rem; }
+    .launcher-head h1 { font-size: 1.5rem; margin: 0 0 0.4rem; }
+    .launcher-head p { color: var(--ink-soft); font-size: 0.85rem; margin: 0; }
+    .launcher-group { margin-bottom: 1.75rem; }
+    .launcher-group h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); font-weight: 700; margin: 0 0 0.75rem; }
+    .launcher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+    .launcher-card {
+      display: block; background: var(--surface-solid); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.85rem 1rem; text-decoration: none; color: var(--ink); font-size: 0.85rem; font-weight: 650;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .launcher-card span { display: block; font-size: 0.7rem; font-weight: 600; color: var(--ink-faint); margin-top: 0.2rem; }
+    .launcher-card:hover { border-color: var(--accent); box-shadow: 0 4px 14px -6px var(--shadow); }
+  </style>
+</head>
+<body>
+  <div class="launcher">
+    <div class="launcher-head">
+      <h1 class="display">Jain Kalyanam — page mockups</h1>
+      <p>New-format mockups of every real jain-matrimony app page. Each links to <code>../style.css</code>, the shared design system.</p>
+    </div>
+
+    <div class="launcher-group">
+      <h2>Entry</h2>
+      <div class="launcher-grid">
+        <a class="launcher-card" href="login.html">Login<span>Pre-auth screen</span></a>
+      </div>
+    </div>
+
+    <div class="launcher-group">
+      <h2>Core</h2>
+      <div class="launcher-grid">
+        <a class="launcher-card" href="dashboard.html">Dashboard<span>Overview & KPIs</span></a>
+        <a class="launcher-card" href="search.html">Search<span>Profile search & filters</span></a>
+        <a class="launcher-card" href="assigned-profiles.html">Assigned Profiles<span>My queue & tasks</span></a>
+        <a class="launcher-card" href="create-profile.html">Create Profile<span>9-step registration wizard</span></a>
+        <a class="launcher-card" href="edit-profile.html">Edit Profile<span>Update an existing record</span></a>
+        <a class="launcher-card" href="profile-detail.html">Profile Detail<span>Full candidate read view</span></a>
+        <a class="launcher-card" href="my-profile.html">My Profile<span>Staff account settings</span></a>
+        <a class="launcher-card" href="future-prospects.html">Future Prospects<span>Tracked prospective matches</span></a>
+        <a class="launcher-card" href="profile-alerts.html">Profile Alerts<span>Notifications & follow-ups</span></a>
+      </div>
+    </div>
+
+    <div class="launcher-group">
+      <h2>Admin</h2>
+      <div class="launcher-grid">
+        <a class="launcher-card" href="user-management.html">User Management<span>Staff, roles & access</span></a>
+        <a class="launcher-card" href="audit-logs.html">Audit Logs<span>System action trail</span></a>
+        <a class="launcher-card" href="recommendation-dashboard.html">Recommendation Dashboard<span>Match suggestions</span></a>
+        <a class="launcher-card" href="hrms-analytics.html">HRMS Analytics<span>Staff performance</span></a>
+        <a class="launcher-card" href="task-assignment.html">Task Assignment<span>Kanban / task tracking</span></a>
+        <a class="launcher-card" href="duplicate-merge-history.html">Duplicate Merge History<span>Merge audit & diffs</span></a>
+        <a class="launcher-card" href="permission-docs.html">Permission Docs<span>Role × capability matrix</span></a>
+        <a class="launcher-card" href="import-export.html">Import / Export<span>Bulk data workspace</span></a>
+        <a class="launcher-card" href="temp-recommendation-import.html">Temp Recommendation Import<span>Staging & validation</span></a>
+        <a class="launcher-card" href="watermarked-pdf-redaction.html">Watermarked PDF Redaction<span>Biodata redaction workspace</span></a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
